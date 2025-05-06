@@ -21,8 +21,8 @@ const TwentyTwentyFive = () => {
                 <Game name='Hellblade' year='2024' imageUrl='/2025/2025_4.jpg' specialDescription='this is a good game.' />
                 <Game name='Hellblade' year='2024' imageUrl='/2025/2025_5.jpg' specialDescription='this is a good game.' />
                 <Game name='Hellblade' year='2024' imageUrl='/2025/2025_6.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2025/2025_7.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2025/2025_8.jpg' specialDescription='this is a good game.' />
+                <Game name='Stalker 2' year='2024' imageUrl='/2025/2025_7.jpg' specialDescription='this is a good game.' />
+                <Game name='The Last Of Us II' year='2020' imageUrl='/2025/2025_8.jpg' specialDescription='Ellie,Abby,joel,Dina,Jesse,Tommy,Liv.' />
 
             </div>
         </div>
