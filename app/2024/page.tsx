@@ -15,27 +15,27 @@ const TwentyTwentyFour = () => {
         <div className="mt-[1%] flex flex-row justify-center flex-wrap">
             <div className='mt-[1%] flex flex-row justify-center flex-wrap'>
 
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_1.jpg' specialDescription='This is a Single Player Story Mode game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_2.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_3.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_5.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_6.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_7.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_8.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_9.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_10.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_11.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_12.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_13.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_14.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_15.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_16.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_17.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_18.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_19.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_20.jpg' specialDescription='this is a good game.' />
-                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_21.jpg' specialDescription='this is a good game.' />
-
+                <Game name='Hellblade' year='2017' imageUrl='/2024/2024_1.jpg' specialDescription='Senua.' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_2.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_3.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_5.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_6.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_7.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_8.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_9.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_10.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_11.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_12.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_13.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_14.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_15.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_16.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_17.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_18.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_19.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_20.jpg' specialDescription='' />
+                <Game name='Hellblade' year='2024' imageUrl='/2024/2024_21.jpg' specialDescription='' />
+                
             </div>
         </div>
     </div>
