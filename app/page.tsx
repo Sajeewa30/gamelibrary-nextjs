@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import AddGameForm from "@/components/addGameForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
 
@@ -10,7 +10,23 @@ export default function Home() {
     const currentYear = currentDate.getFullYear();
 
     const[year,setYear] = useState(currentYear);
- 
+
+    const[gameCount,setGameCount] = useState<number | null>(null); 
+
+     useEffect(() => {
+
+      const fullGameCount = async () => {
+      const res = await fetch('http://localhost:8080/admin/fullGameCount');
+      const data = await res.json();
+      console.log(data);
+      setGameCount(data.fullGameCount);
+    };
+
+    fullGameCount();
+    
+  }, []);
+
+
   return (
   <div className="min-h-screen p-4 bg-black">
       <ul className="grid grid-cols-2 gap-4 h-[80vh]">
@@ -47,7 +63,20 @@ export default function Home() {
               onChange={(e:any) => setYear(e.target.value)}
           />
         </li>
+
+        <Link href="/ToBeCompleted" className="block">
+          <li className="bg-white rounded-2xl shadow-md flex items-center justify-center text-center p-6 hover:bg-blue-100 transition cursor-pointer h-full">
+            <span className="text-lg font-semibold text-black">
+              Click to see Games still to be Completed
+            </span>
+          </li>
+        </Link>
+
       </ul>
+
+      <div className="bg-white rounded-2xl shadow-md flex items-center justify-center text-center p-6 hover:bg-blue-100 transition mt-3">
+        <h1 className="text-black">Total Games Played - {gameCount}</h1>
+      </div>
 
       <div className="mt-6">
         <AddGameForm />

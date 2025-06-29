@@ -24,11 +24,14 @@ const TwentyTwentyFive = () => {
                 <Game name='The Last Of Us II' year='2020' imageUrl='/2025/2025_8.jpg' specialDescription='Ellie,Abby,joel,Dina,Jesse,Tommy,Liv.' />
                 <Game name='Clair Obscur - Expedition 33' year='2025' imageUrl='/2025/2025_9.jpg' specialDescription='Maelle,Gustave,Sciel,Lune,Verso,Alicia,   Monoco,Esquie,Renoir' />
                 <Game name='Call Of Duty MW II' year='2022' imageUrl='/2025/2025_10.jpg' specialDescription='' />
-                <Game name='Call Of Duty Vanguard' year='2021' imageUrl='/2025/2025_11.jpg' specialDescription='' />
+                <Game name='Final Fantasy VII : Rebirth' year='2024' imageUrl='/2025/2025_13.jpg' specialDescription='' />
                 <Game name='Need For Speed Unbound' year='2022' imageUrl='/2025/2025_12.jpg' specialDescription='' />
-                <Game name='Final Fantasy : Rebirth' year='2024' imageUrl='/2025/2025_13.jpg' specialDescription='' />
+                <Game name='Call Of Duty MW I' year='2019' imageUrl='/2025/2025_10.jpg' specialDescription='' />
+                
+                <Game name='Call Of Duty Vanguard' year='2021' imageUrl='/2025/2025_11.jpg' specialDescription='' />
                 <Game name='Split Fiction' year='2025' imageUrl='/2025/2025_14.jpg' specialDescription='' />
                 <Game name='Kingdom Come Deliverance II' year='2025' imageUrl='/2025/2025_15.jpg' specialDescription='' />
+                <Game name='Dead Space' year='2023' imageUrl='/2025/2025_16.jpg' specialDescription='This is a remake of the original' />
             </div>
         </div>
     </div>
