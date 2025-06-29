@@ -29,6 +29,7 @@ export default function Home() {
 
   return (
   <div className="min-h-screen p-4 bg-black">
+
       <ul className="grid grid-cols-2 gap-4 h-[80vh]">
         
         <Link href="/Favourites" className="block">
@@ -62,6 +63,8 @@ export default function Home() {
               value={year}
               onChange={(e:any) => setYear(e.target.value)}
           />
+
+          
         </li>
 
         <Link href="/ToBeCompleted" className="block">
@@ -81,6 +84,7 @@ export default function Home() {
       <div className="mt-6">
         <AddGameForm />
       </div>
+
     </div>
   );
 }

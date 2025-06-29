@@ -12,7 +12,9 @@ const Game:React.FC<GameProps> = ({name,year,imageUrl,specialDescription}) => {
     return (
         <div className="album-col relative rounded-[10px] mb-[30px] basis-[32%] ">
             <div className="relative group overflow-hidden w-[300px] h-[430px] ">
+                
                 <Image src={imageUrl} alt={"Image is Loading"} width={300} height={400} className="h-[400px]"/>
+
                 <div className="layer absolute top-0 left-0 w-[300px] h-[400px]  bg-transparent transition duration-500 hover:bg-[rgba(71,65,65,0.7)] hidden group-hover:flex items-center justify-center">
                     <div className="text-white ml-5 mr-5 bg-transparent transition duration-500 hover:bg-[#000000]">{specialDescription}</div>
                 </div>
