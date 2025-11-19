@@ -1,27 +1,30 @@
 'use client'
 
 import React from "react";
+import type { FormEvent } from "react";
 
-const addGameForm = () => {
+const AddGameForm = () => {
 
   const webUrl: string = "http://localhost:8080";
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
 
-  const handleSubmit = async (event: any) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const imageFile = event.target.image.files[0];
-    let imageUrl = "";
+    const formData = new FormData(event.currentTarget);
 
-    if (imageFile) {
-      const formData = new FormData();
-      formData.append("image", imageFile);
+    let imageUrl = "";
+    const imageFile = formData.get("image") as File | null;
+
+    if (imageFile && imageFile.size > 0) {
+      const uploadData = new FormData();
+      uploadData.append("image", imageFile);
 
       try {
         const res = await fetch(`${webUrl}/admin/uploadImage`, {
           method: "POST",
-          body: formData,
+          body: uploadData,
         });
 
         if (res.ok) {
@@ -36,26 +39,26 @@ const addGameForm = () => {
       }
     }
 
-    const data = {
-      name: String(event.target.name.value),
-      year: Number(event.target.year.value),
-      completedYear: Number(event.target.completedYear.value),
-      isCompleted: Boolean(event.target.isCompleted.checked),
-      isHundredPercent: Boolean(event.target.isHundredPercent.checked),
-      isFavourite: Boolean(event.target.isFavourite.checked),
-      specialDescription: String(event.target.specialDescription.value),
-      imageUrl: imageUrl, // now included
+    const payload = {
+      name: String(formData.get("name") ?? ""),
+      year: Number(formData.get("year") ?? 0),
+      completedYear: Number(formData.get("completedYear") ?? 0),
+      isCompleted: formData.get("isCompleted") === "on",
+      isHundredPercent: formData.get("isHundredPercent") === "on",
+      isFavourite: formData.get("isFavourite") === "on",
+      specialDescription: String(formData.get("specialDescription") ?? ""),
+      imageUrl,
     };
 
     await fetch(`${webUrl}/admin/addGameItem`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     })
       .then((response) => response.json())
-      .then(data => {
+      .then((data) => {
         console.log("Game added:", data);
         alert("Game successfully added!");
       });
@@ -68,13 +71,13 @@ const addGameForm = () => {
         <h1>Fill This To Add a New Game</h1><br />
 
         <label>Name : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="name" required minLength={1} maxLength={40} /><br /><br />
+        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="name" name="name" required minLength={1} maxLength={40} /><br /><br />
 
         <label>Year : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="year" required defaultValue={currentYear} min={1975} /><br /><br />
+        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="year" name="year" required defaultValue={currentYear} min={1975} /><br /><br />
 
         <label>Completed Year/Played year : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="completedYear" defaultValue={currentYear} required min={1975} /><br /><br />
+        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="completedYear" name="completedYear" defaultValue={currentYear} required min={1975} /><br /><br />
 
         <label>Is It Completed? : </label>
         <input className="bg-amber-50 rounded-b-md rounded-t-sm" type="checkbox" id="isCompleted" name="isCompleted" /><br /><br />
@@ -86,7 +89,7 @@ const addGameForm = () => {
         <input className="bg-amber-50 rounded-b-md rounded-t-sm" type="checkbox" id="isFavourite" name="isFavourite" /><br /><br />
 
         <label>Special Description : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="specialDescription" minLength={0} maxLength={40} /><br /><br />
+        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="specialDescription" name="specialDescription" minLength={0} maxLength={40} /><br /><br />
 
         <label>Add image Here :</label><br />
         <input className="text-white" type="file" name="image" accept="image/*" required /><br /><br />
@@ -98,4 +101,4 @@ const addGameForm = () => {
   );
 };
 
-export default addGameForm;
+export default AddGameForm;
