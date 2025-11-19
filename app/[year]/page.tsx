@@ -53,9 +53,9 @@ const YearPage = () => {
           {games.length === 0 ? (
             <p className="text-white text-xl">No games found for {year}</p>
           ) : (
-            games.map((game, index) => (
+            games.map((game) => (
               <Game
-                key={index}
+                key={`${game.name}-${game.year}`}
                 name={game.name}
                 year={game.year.toString()}
                 imageUrl={game.imageUrl}

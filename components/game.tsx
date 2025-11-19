@@ -1,6 +1,4 @@
 'use client';
-
-import React from "react";
 import Image from "next/image";
 
 type GameProps = {
@@ -16,12 +14,12 @@ function isValidHttpUrl(str: string | null | undefined): boolean {
   try {
     const url = new URL(str);
     return url.protocol === "http:" || url.protocol === "https:";
-  } catch (_) {
+  } catch {
     return false;
   }
 }
 
-const Game: React.FC<GameProps> = ({ name, year, imageUrl, specialDescription }) => {
+const Game = ({ name, year, imageUrl, specialDescription }: GameProps) => {
   const hasValidImage = isValidHttpUrl(imageUrl);
 
   return (

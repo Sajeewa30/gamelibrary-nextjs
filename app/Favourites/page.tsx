@@ -47,9 +47,9 @@ const Favourites = () => {
           ) : games.length === 0 ? (
             <p className="text-white text-xl">No favourite games found.</p>
           ) : (
-            games.map((game, idx) => (
+            games.map((game) => (
               <Game
-                key={idx}
+                key={`${game.name}-${game.year}`}
                 name={game.name}
                 year={game.year.toString()}
                 imageUrl={game.imageUrl}

@@ -47,9 +47,9 @@ const FullyCompleted = () => {
           ) : games.length === 0 ? (
             <p className="text-white text-xl">No 100% completed games found.</p>
           ) : (
-            games.map((game, idx) => (
+            games.map((game) => (
               <Game
-                key={idx}
+                key={`${game.name}-${game.year}`}
                 name={game.name}
                 year={game.year.toString()}
                 imageUrl={game.imageUrl}
