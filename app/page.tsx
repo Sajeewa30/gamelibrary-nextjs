@@ -4,6 +4,7 @@ import Link from "next/link";
 import AddGameForm from "@/components/addGameForm";
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function Home() {
 
@@ -17,7 +18,7 @@ export default function Home() {
      useEffect(() => {
 
       const fullGameCount = async () => {
-      const res = await fetch('http://localhost:8080/admin/fullGameCount');
+      const res = await fetch(`${API_BASE_URL}/admin/fullGameCount`);
       const data = await res.json();
       console.log(data);
       setGameCount(data.fullGameCount);

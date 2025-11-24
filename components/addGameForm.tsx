@@ -1,10 +1,11 @@
 'use client'
 
 import type { FormEvent } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 const AddGameForm = () => {
 
-  const webUrl: string = "http://localhost:8080";
+  const webUrl = API_BASE_URL;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
 
