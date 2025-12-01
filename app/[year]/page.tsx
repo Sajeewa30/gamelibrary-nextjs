@@ -7,6 +7,7 @@ import Game from "@/components/game";
 import { API_BASE_URL } from "@/lib/api";
 import RequireAuth from "@/components/requireAuth";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { useAuth } from "@/components/authProvider";
 
 type GameType = {
   name: string;
@@ -25,9 +26,10 @@ const YearPage = () => {
 
   const [games, setGames] = useState<GameType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!year) return;
+    if (!year || authLoading || !user) return;
 
     const fetchGamesByYear = async () => {
       try {
@@ -44,7 +46,7 @@ const YearPage = () => {
     };
 
     fetchGamesByYear();
-  }, [year]);
+  }, [year, user, authLoading]);
 
   return (
     <RequireAuth>

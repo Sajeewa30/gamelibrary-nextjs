@@ -6,6 +6,7 @@ import Game from "@/components/game";
 import { API_BASE_URL } from "@/lib/api";
 import RequireAuth from "@/components/requireAuth";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { useAuth } from "@/components/authProvider";
 
 type GameType = {
   name: string;
@@ -21,6 +22,7 @@ type GameType = {
 const Favourites = () => {
   const [games, setGames] = useState<GameType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchFavourites = async () => {
@@ -37,8 +39,10 @@ const Favourites = () => {
       }
     };
 
-    fetchFavourites();
-  }, []);
+    if (!authLoading && user) {
+      fetchFavourites();
+    }
+  }, [authLoading, user]);
 
   return (
     <RequireAuth>
