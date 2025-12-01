@@ -1,21 +1,12 @@
 'use client';
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useAuth } from "@/components/authProvider";
 
 const AuthBar = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+  const { user, loading } = useAuth();
 
   const handleSignOut = async () => {
     await signOut(auth);

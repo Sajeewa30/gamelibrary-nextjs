@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Game from "@/components/game";
 import { API_BASE_URL } from "@/lib/api";
+import RequireAuth from "@/components/requireAuth";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 type GameType = {
   name: string;
@@ -23,7 +25,9 @@ const Favourites = () => {
   useEffect(() => {
     const fetchFavourites = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/getFavouriteGames`);
+        const res = await fetchWithAuth(
+          `${API_BASE_URL}/admin/getFavouriteGames`
+        );
         const data = await res.json();
         setGames(data);
       } catch (error) {
@@ -37,7 +41,8 @@ const Favourites = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
+    <RequireAuth>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -58,7 +63,7 @@ const Favourites = () => {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
-          <div className="flex flex-wrap gap-6 justify-center">
+          <div className="flex flex-wrap justify-center gap-6">
             {loading ? (
               <p className="text-white/70 text-lg">Loading...</p>
             ) : games.length === 0 ? (
@@ -77,7 +82,8 @@ const Favourites = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </RequireAuth>
   );
 };
 
