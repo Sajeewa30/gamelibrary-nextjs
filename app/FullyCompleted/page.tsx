@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Game from "@/components/game";
 import { API_BASE_URL } from "@/lib/api";
+import RequireAuth from "@/components/requireAuth";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { useAuth } from "@/components/authProvider";
 
 type GameType = {
   name: string;
@@ -19,11 +22,12 @@ type GameType = {
 const FullyCompleted = () => {
   const [games, setGames] = useState<GameType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchHundredPercent = async () => {
       try {
-        const res = await fetch(
+        const res = await fetchWithAuth(
           `${API_BASE_URL}/admin/getHundredPercentCompletedGames`
         );
         const data = await res.json();
@@ -35,11 +39,14 @@ const FullyCompleted = () => {
       }
     };
 
-    fetchHundredPercent();
-  }, []);
+    if (!authLoading && user) {
+      fetchHundredPercent();
+    }
+  }, [authLoading, user]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
+    <RequireAuth>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -62,7 +69,7 @@ const FullyCompleted = () => {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
-          <div className="flex flex-wrap gap-6 justify-center">
+          <div className="flex flex-wrap justify-center gap-6">
             {loading ? (
               <p className="text-white/70 text-lg">Loading...</p>
             ) : games.length === 0 ? (
@@ -83,7 +90,8 @@ const FullyCompleted = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </RequireAuth>
   );
 };
 

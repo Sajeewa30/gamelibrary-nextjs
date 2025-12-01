@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 const AddGameForm = () => {
   const webUrl = API_BASE_URL;
@@ -21,7 +22,7 @@ const AddGameForm = () => {
       uploadData.append("image", imageFile);
 
       try {
-        const res = await fetch(`${webUrl}/admin/uploadImage`, {
+        const res = await fetchWithAuth(`${webUrl}/admin/uploadImage`, {
           method: "POST",
           body: uploadData,
         });
@@ -49,7 +50,7 @@ const AddGameForm = () => {
       imageUrl,
     };
 
-    await fetch(`${webUrl}/admin/addGameItem`, {
+    await fetchWithAuth(`${webUrl}/admin/addGameItem`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

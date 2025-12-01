@@ -1,27 +1,31 @@
 'use client'
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { useAuth } from "@/components/authProvider";
 
 export default function Home() {
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-
+  const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [gameCount, setGameCount] = useState<number | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fullGameCount = async () => {
-      const res = await fetch(`${API_BASE_URL}/admin/fullGameCount`);
+      const res = await fetchWithAuth(`${API_BASE_URL}/admin/fullGameCount`);
       const data = await res.json();
       setGameCount(data.fullGameCount);
     };
 
-    fullGameCount();
-  }, []);
+    if (user) {
+      fullGameCount();
+    } else {
+      setGameCount(null);
+    }
+  }, [user]);
 
   const scrollToMain = () => {
     mainRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,7 +57,7 @@ export default function Home() {
           className="absolute bottom-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-lg shadow-black/30 backdrop-blur transition hover:-translate-y-1 hover:border-sky-400/60 hover:bg-white/20"
           aria-label="Enter library"
         >
-          ↓
+          <span aria-hidden="true">↓</span>
         </button>
       </section>
 
@@ -171,7 +175,7 @@ export default function Home() {
           <div className="w-full rounded-2xl border border-white/5 bg-white/5 px-6 py-4 text-center backdrop-blur-xl">
             <p className="text-sm text-white/60">Total games tracked</p>
             <p className="text-2xl font-semibold text-white">
-              {gameCount ?? "—"}
+              {user ? gameCount ?? "—" : "Sign in to load"}
             </p>
           </div>
 
