@@ -3,6 +3,8 @@
 import Link from "next/link";
 import AddGameForm from "@/components/addGameForm";
 import { useEffect, useState } from "react";
+import type { ChangeEvent } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function Home() {
 
@@ -16,7 +18,7 @@ export default function Home() {
      useEffect(() => {
 
       const fullGameCount = async () => {
-      const res = await fetch('http://localhost:8080/admin/fullGameCount');
+      const res = await fetch(`${API_BASE_URL}/admin/fullGameCount`);
       const data = await res.json();
       console.log(data);
       setGameCount(data.fullGameCount);
@@ -61,7 +63,7 @@ export default function Home() {
               className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center w-24 ml-2"
               autoComplete="off"
               value={year}
-              onChange={(e:any) => setYear(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setYear(Number(e.target.value))}
           />
 
           

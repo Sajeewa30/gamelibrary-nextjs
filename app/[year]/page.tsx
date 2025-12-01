@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Game from "@/components/game";
+import { API_BASE_URL } from "@/lib/api";
 
 type GameType = {
   name: string;
@@ -27,7 +28,7 @@ const YearPage = () => {
 
     const fetchGamesByYear = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/admin/games/byYear/${year}`);
+        const res = await fetch(`${API_BASE_URL}/admin/games/byYear/${year}`);
         const data = await res.json();
         setGames(data);
       } catch (err) {
@@ -53,9 +54,9 @@ const YearPage = () => {
           {games.length === 0 ? (
             <p className="text-white text-xl">No games found for {year}</p>
           ) : (
-            games.map((game, index) => (
+            games.map((game) => (
               <Game
-                key={index}
+                key={`${game.name}-${game.year}`}
                 name={game.name}
                 year={game.year.toString()}
                 imageUrl={game.imageUrl}

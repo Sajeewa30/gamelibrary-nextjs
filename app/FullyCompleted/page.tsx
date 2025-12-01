@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Game from "@/components/game";
+import { API_BASE_URL } from "@/lib/api";
 
 type GameType = {
   name: string;
@@ -21,7 +22,7 @@ const FullyCompleted = () => {
   useEffect(() => {
     const fetchHundredPercent = async () => {
       try {
-        const res = await fetch("http://localhost:8080/admin/getHundredPercentCompletedGames");
+        const res = await fetch(`${API_BASE_URL}/admin/getHundredPercentCompletedGames`);
         const data = await res.json();
         setGames(data);
       } catch (error) {
@@ -47,9 +48,9 @@ const FullyCompleted = () => {
           ) : games.length === 0 ? (
             <p className="text-white text-xl">No 100% completed games found.</p>
           ) : (
-            games.map((game, idx) => (
+            games.map((game) => (
               <Game
-                key={idx}
+                key={`${game.name}-${game.year}`}
                 name={game.name}
                 year={game.year.toString()}
                 imageUrl={game.imageUrl}
