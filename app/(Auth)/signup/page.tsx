@@ -25,6 +25,9 @@ export default function SignUpPage() {
 
     setLoading(true);
     try {
+      if (!auth) {
+        throw new Error("Firebase auth not initialized");
+      }
       await createUserWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (err: any) {

@@ -9,6 +9,7 @@ const AuthBar = () => {
   const { user, loading } = useAuth();
 
   const handleSignOut = async () => {
+    if (!auth) return;
     await signOut(auth);
   };
 

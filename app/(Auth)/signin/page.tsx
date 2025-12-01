@@ -19,6 +19,9 @@ export default function SignInPage() {
     setError(null);
     setLoading(true);
     try {
+      if (!auth) {
+        throw new Error("Firebase auth not initialized");
+      }
       await signInWithEmailAndPassword(auth, email, password);
       const next = searchParams.get("next");
       router.push(next || "/");
