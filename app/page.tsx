@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -11,6 +11,7 @@ export default function Home() {
 
   const [year, setYear] = useState(currentYear);
   const [gameCount, setGameCount] = useState<number | null>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fullGameCount = async () => {
@@ -22,9 +23,44 @@ export default function Home() {
     fullGameCount();
   }, []);
 
+  const scrollToMain = () => {
+    mainRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-12">
+      <section className="relative flex h-screen items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(4,9,30,0.65) 0%, rgba(4,9,30,0.85) 100%), url('/Home%20page%20background.jpg')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/50" />
+
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+          <p className="text-sm uppercase tracking-[0.4em] text-sky-300/80">
+            Game Library
+          </p>
+          <h1 className="mt-4 text-4xl font-semibold text-white sm:text-5xl">
+            Track, Celebrate, and Discover Your Games
+          </h1>
+        </div>
+
+        <button
+          onClick={scrollToMain}
+          className="absolute bottom-10 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-lg shadow-black/30 backdrop-blur transition hover:-translate-y-1 hover:border-sky-400/60 hover:bg-white/20"
+          aria-label="Enter library"
+        >
+          ↓
+        </button>
+      </section>
+
+      <div
+        ref={mainRef}
+        className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-12"
+      >
         <header className="w-full text-center">
           <p className="text-sm uppercase tracking-[0.4em] text-sky-400/70">
             Game Library
