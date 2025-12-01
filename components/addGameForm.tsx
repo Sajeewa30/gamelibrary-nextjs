@@ -4,7 +4,6 @@ import type { FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 
 const AddGameForm = () => {
-
   const webUrl = API_BASE_URL;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -65,39 +64,122 @@ const AddGameForm = () => {
   };
 
   return (
-    <div className="flex justify-center">
-      <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-4 text-white">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-white">
+          Fill this to add a new game
+        </h1>
+      </div>
 
-        <h1>Fill This To Add a New Game</h1><br />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-2 text-sm text-white/70">
+          Name
+          <input
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/40"
+            type="text"
+            autoComplete="off"
+            id="name"
+            name="name"
+            required
+            minLength={1}
+            maxLength={40}
+          />
+        </label>
 
-        <label>Name : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="name" name="name" required minLength={1} maxLength={40} /><br /><br />
+        <label className="flex flex-col gap-2 text-sm text-white/70">
+          Year
+          <input
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/40"
+            type="number"
+            autoComplete="off"
+            id="year"
+            name="year"
+            required
+            defaultValue={currentYear}
+            min={1975}
+          />
+        </label>
 
-        <label>Year : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="year" name="year" required defaultValue={currentYear} min={1975} /><br /><br />
+        <label className="flex flex-col gap-2 text-sm text-white/70">
+          Completed year / Played year
+          <input
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/40"
+            type="number"
+            autoComplete="off"
+            id="completedYear"
+            name="completedYear"
+            defaultValue={currentYear}
+            required
+            min={1975}
+          />
+        </label>
 
-        <label>Completed Year/Played year : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black text-center" type="number" autoComplete="off" id="completedYear" name="completedYear" defaultValue={currentYear} required min={1975} /><br /><br />
+        <label className="flex flex-col gap-2 text-sm text-white/70">
+          Special description
+          <input
+            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/40"
+            type="text"
+            autoComplete="off"
+            id="specialDescription"
+            name="specialDescription"
+            minLength={0}
+            maxLength={40}
+          />
+        </label>
+      </div>
 
-        <label>Is It Completed? : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm" type="checkbox" id="isCompleted" name="isCompleted" /><br /><br />
+      <div className="flex flex-wrap gap-6">
+        <label className="flex items-center gap-2 text-sm text-white/80">
+          <input
+            className="h-5 w-5 rounded border-white/20 bg-black/50 text-sky-400 focus:ring-sky-400/60"
+            type="checkbox"
+            id="isCompleted"
+            name="isCompleted"
+          />
+          Completed
+        </label>
 
-        <label>Is It 100% Completed? : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm" type="checkbox" id="isHundredPercent" name="isHundredPercent" /><br /><br />
+        <label className="flex items-center gap-2 text-sm text-white/80">
+          <input
+            className="h-5 w-5 rounded border-white/20 bg-black/50 text-emerald-400 focus:ring-emerald-400/60"
+            type="checkbox"
+            id="isHundredPercent"
+            name="isHundredPercent"
+          />
+          100% Completed
+        </label>
 
-        <label>Is It One of your Favourites? : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm" type="checkbox" id="isFavourite" name="isFavourite" /><br /><br />
+        <label className="flex items-center gap-2 text-sm text-white/80">
+          <input
+            className="h-5 w-5 rounded border-white/20 bg-black/50 text-fuchsia-400 focus:ring-fuchsia-400/60"
+            type="checkbox"
+            id="isFavourite"
+            name="isFavourite"
+          />
+          Favourite
+        </label>
+      </div>
 
-        <label>Special Description : </label>
-        <input className="bg-amber-50 rounded-b-md rounded-t-sm text-black" type="text" autoComplete="off" id="specialDescription" name="specialDescription" minLength={0} maxLength={40} /><br /><br />
+      <label className="flex flex-col gap-2 text-sm text-white/70">
+        Add image
+        <input
+          className="w-full cursor-pointer rounded-lg border border-dashed border-white/15 bg-black/30 px-3 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-sky-500/20 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sky-100 hover:border-sky-400/40"
+          type="file"
+          name="image"
+          accept="image/*"
+          required
+        />
+      </label>
 
-        <label>Add image Here :</label><br />
-        <input className="text-white" type="file" name="image" accept="image/*" required /><br /><br />
-
-        <button className="bg-amber-950 p-2 rounded-md text-white" type="submit">Submit</button>
-
-      </form>
-    </div>
+      <div className="flex justify-end">
+        <button
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-indigo-900/40"
+          type="submit"
+        >
+          Save game
+        </button>
+      </div>
+    </form>
   );
 };
 

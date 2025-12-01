@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Game from "@/components/game";
@@ -41,29 +42,47 @@ const YearPage = () => {
     fetchGamesByYear();
   }, [year]);
 
-  if (loading) return <p className="text-white text-center">Loading games...</p>;
-
   return (
-    <div>
-      <div className="w-[90%] mb-4 mx-auto text-center pt-[50px] pb-[50px] bg-[linear-gradient(rgba(4,9,30,0.8),rgba(4,9,30,0.8)),url('/-background.JPG')] bg-cover bg-center">
-        <h1 className="text-white font-bold text-8xl">{year}</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-amber-400/70">
+              Year view
+            </p>
+            <h1 className="text-4xl font-semibold text-white/90">{year}</h1>
+            <p className="mt-2 text-white/60">
+              All games completed or played in {year}.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-400/50 hover:bg-white/10"
+          >
+            ← Back home
+          </Link>
+        </div>
 
-      <div className="w-[90%] mx-auto text-center pt-[50px] bg-[linear-gradient(rgba(4,9,30,0.8),rgba(4,9,30,0.8)),url('/background.JPG')] bg-cover bg-center">
-        <div className="mt-[1%] flex flex-row justify-center flex-wrap">
-          {games.length === 0 ? (
-            <p className="text-white text-xl">No games found for {year}</p>
-          ) : (
-            games.map((game) => (
-              <Game
-                key={`${game.name}-${game.year}`}
-                name={game.name}
-                year={game.year.toString()}
-                imageUrl={game.imageUrl}
-                specialDescription={game.specialDescription}
-              />
-            ))
-          )}
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
+          <div className="flex flex-wrap gap-6 justify-center">
+            {loading ? (
+              <p className="text-white/70 text-lg">Loading games...</p>
+            ) : games.length === 0 ? (
+              <p className="text-white/70 text-lg">
+                No games found for {year}.
+              </p>
+            ) : (
+              games.map((game) => (
+                <Game
+                  key={`${game.name}-${game.year}`}
+                  name={game.name}
+                  year={game.year.toString()}
+                  imageUrl={game.imageUrl}
+                  specialDescription={game.specialDescription}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
