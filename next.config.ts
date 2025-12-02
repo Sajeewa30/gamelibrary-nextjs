@@ -5,7 +5,10 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost'],
+    domains: [
+      'localhost',
+      'game-tracker-sajeewa.s3.eu-north-1.amazonaws.com',
+    ],
   },
 };
 
