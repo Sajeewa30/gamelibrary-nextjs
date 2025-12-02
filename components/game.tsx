@@ -32,6 +32,7 @@ const Game = ({ name, year, imageUrl, specialDescription }: GameProps) => {
             fill
             sizes="280px"
             className="object-cover transition duration-500 group-hover:scale-105"
+            unoptimized
             priority={false}
           />
         ) : (
