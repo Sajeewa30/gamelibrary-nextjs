@@ -105,9 +105,10 @@ const GameDetailPage = () => {
   };
 
   const handleDeleteMedia = async () => {
-    if (lightboxIndex === null || !resolvedId) return;
-    const list = lightboxType === "image" ? game.gallery : game.videos;
-    if (!list || list.length === 0) return;
+    if (lightboxIndex === null || !resolvedId || !game) return;
+    const list =
+      lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
+    if (!list.length) return;
 
     const url = list[lightboxIndex];
     const confirmed = window.confirm(
@@ -128,7 +129,10 @@ const GameDetailPage = () => {
         const txt = await res.text();
         throw new Error(txt || "Failed to delete media");
       }
-      const data = (await res.json()) as { gallery?: string[]; videos?: string[] };
+      const data = (await res.json()) as {
+        gallery?: string[];
+        videos?: string[];
+      };
       setGame((prev) =>
         prev
           ? {
@@ -139,7 +143,7 @@ const GameDetailPage = () => {
           : prev
       );
       setLightboxIndex(null);
-    setLightboxType("image");
+      setLightboxType("image");
     } catch (err: any) {
       alert(err?.message || "Failed to delete media");
     } finally {
