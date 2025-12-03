@@ -309,11 +309,14 @@ const GameDetailPage = () => {
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {game.gallery?.length ? (
-                  game.gallery.map((url) => (
+                  game.gallery.map((url, idx) => (
                     <div
                       key={url}
                       className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
-                      onClick={() => setLightboxIndex(game.gallery?.indexOf(url) ?? null)}
+                      onClick={() => {
+                        setLightboxType("image");
+                        setLightboxIndex(idx);
+                      }}
                     >
                       <Image
                         src={url}
@@ -361,13 +364,13 @@ const GameDetailPage = () => {
               </div>
               <div className="mt-3 space-y-3">
                 {game.videos?.length ? (
-                  game.videos.map((url) => (
+                  game.videos.map((url, idx) => (
                     <div
                       key={url}
                       className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
                       onClick={() => {
                         setLightboxType("video");
-                        setLightboxIndex(game.videos?.indexOf(url) ?? null);
+                        setLightboxIndex(idx);
                       }}
                     >
                       <video controls className="w-full">
