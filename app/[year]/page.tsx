@@ -12,6 +12,8 @@ import { useAuth } from "@/components/authProvider";
 type GameType = {
   id?: string;
   _id?: string;
+  gameId?: string;
+  itemId?: string;
   name: string;
   year: number;
   completedYear: number;
@@ -32,7 +34,16 @@ const YearPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const gameId = (game: GameType) =>
-    (game.id ?? game._id ?? game["gameId"] ?? game["itemId"] ?? "").toString();
+    [
+      game.id,
+      game._id,
+      game.gameId,
+      game.itemId,
+      (game as Record<string, unknown>)?.gameId as string | undefined,
+      (game as Record<string, unknown>)?.itemId as string | undefined,
+    ]
+      .find((val) => typeof val === "string" && val.length > 0)
+      ?.toString() ?? "";
 
   useEffect(() => {
     if (!year || authLoading || !user) return;
