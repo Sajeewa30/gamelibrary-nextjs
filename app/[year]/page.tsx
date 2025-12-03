@@ -10,6 +10,8 @@ import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { useAuth } from "@/components/authProvider";
 
 type GameType = {
+  id?: string;
+  _id?: string;
   name: string;
   year: number;
   completedYear: number;
@@ -27,6 +29,7 @@ const YearPage = () => {
   const [games, setGames] = useState<GameType[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!year || authLoading || !user) return;
@@ -47,6 +50,27 @@ const YearPage = () => {
 
     fetchGamesByYear();
   }, [year, user, authLoading]);
+
+  const handleDelete = async (id: string) => {
+    if (!id) return;
+    setDeletingId(id);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete");
+      }
+      setGames((prev) =>
+        prev.filter((g) => (g.id ?? g._id ?? "") !== id)
+      );
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete game.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <RequireAuth>
@@ -72,25 +96,29 @@ const YearPage = () => {
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
             <div className="flex flex-wrap gap-6 justify-center">
-              {loading ? (
-                <p className="text-white/70 text-lg">Loading games...</p>
-              ) : games.length === 0 ? (
-                <p className="text-white/70 text-lg">
-                  No games found for {year}.
-                </p>
-              ) : (
-                games.map((game) => (
-                  <Game
-                    key={`${game.name}-${game.year}`}
-                    name={game.name}
-                    year={game.year.toString()}
-                    imageUrl={game.imageUrl}
-                    specialDescription={game.specialDescription}
-                  />
-                ))
-              )}
-            </div>
+            {loading ? (
+              <p className="text-white/70 text-lg">Loading games...</p>
+            ) : games.length === 0 ? (
+              <p className="text-white/70 text-lg">
+                No games found for {year}.
+              </p>
+            ) : (
+              games.map((game) => (
+                <Game
+                  key={`${game.name}-${game.year}`}
+                  id={(game.id ?? game._id ?? "").toString()}
+                  name={game.name}
+                  year={game.year.toString()}
+                  imageUrl={game.imageUrl}
+                  specialDescription={game.specialDescription}
+                  showDelete
+                  onDelete={handleDelete}
+                  disableDelete={deletingId === (game.id ?? game._id ?? "")}
+                />
+              ))
+            )}
           </div>
+        </div>
         </div>
       </div>
     </RequireAuth>

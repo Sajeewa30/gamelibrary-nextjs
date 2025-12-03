@@ -2,10 +2,14 @@
 import Image from "next/image";
 
 type GameProps = {
+  id?: string;
   name: string;
   year: string;
   specialDescription: string;
   imageUrl: string;
+  showDelete?: boolean;
+  onDelete?: (id: string) => void;
+  disableDelete?: boolean;
 };
 
 // Helper function to validate URL
@@ -19,11 +23,36 @@ function isValidHttpUrl(str: string | null | undefined): boolean {
   }
 }
 
-const Game = ({ name, year, imageUrl, specialDescription }: GameProps) => {
+const Game = ({
+  id,
+  name,
+  year,
+  imageUrl,
+  specialDescription,
+  showDelete = false,
+  onDelete,
+  disableDelete = false,
+}: GameProps) => {
   const hasValidImage = isValidHttpUrl(imageUrl);
+
+  const handleDelete = async () => {
+    if (!id || !onDelete) return;
+    const ok = window.confirm(`Are you sure you want to delete "${name}"?`);
+    if (!ok) return;
+    onDelete(id);
+  };
 
   return (
     <div className="group relative w-[280px] overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg shadow-black/30 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/10">
+      {showDelete && id && (
+        <button
+          onClick={handleDelete}
+          disabled={disableDelete}
+          className="absolute right-3 top-3 z-10 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-semibold text-white shadow-sm shadow-black/40 transition hover:border-red-300/70 hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {disableDelete ? "Deleting..." : "Delete"}
+        </button>
+      )}
       <div className="relative h-[360px] w-full overflow-hidden">
         {hasValidImage ? (
           <Image
