@@ -1,4 +1,5 @@
 'use client';
+import { useState } from "react";
 import Image from "next/image";
 
 type GameProps = {
@@ -34,24 +35,55 @@ const Game = ({
   disableDelete = false,
 }: GameProps) => {
   const hasValidImage = isValidHttpUrl(imageUrl);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!id || !onDelete) return;
-    const ok = window.confirm(`Are you sure you want to delete "${name}"?`);
-    if (!ok) return;
-    onDelete(id);
+    setConfirmOpen(true);
   };
+
+  const handleConfirm = () => {
+    if (!id || !onDelete) return;
+    onDelete(id);
+    setConfirmOpen(false);
+  };
+
+  const handleCancel = () => setConfirmOpen(false);
 
   return (
     <div className="group relative w-[280px] overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg shadow-black/30 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/10">
       {showDelete && id && (
-        <button
-          onClick={handleDelete}
-          disabled={disableDelete}
-          className="absolute right-3 top-3 z-10 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-semibold text-white shadow-sm shadow-black/40 transition hover:border-red-300/70 hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {disableDelete ? "Deleting..." : "Delete"}
-        </button>
+        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-2">
+          <button
+            onClick={handleDeleteClick}
+            disabled={disableDelete}
+            className="rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-semibold text-white shadow-sm shadow-black/40 transition hover:border-red-300/70 hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {disableDelete ? "Deleting..." : "Delete"}
+          </button>
+          {confirmOpen && (
+            <div className="w-64 rounded-xl border border-red-400/40 bg-black/80 p-3 text-left text-xs text-white shadow-lg shadow-black/40 backdrop-blur">
+              <p className="font-semibold text-red-200">
+                Are you sure you want to erase all your data for this game permanently?
+              </p>
+              <div className="mt-3 flex justify-end gap-2">
+                <button
+                  onClick={handleCancel}
+                  className="rounded-lg border border-white/20 px-3 py-1 text-white/80 transition hover:border-white/50 hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={disableDelete}
+                  className="rounded-lg border border-red-400/60 bg-red-500/20 px-3 py-1 font-semibold text-red-100 transition hover:bg-red-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Yes, delete
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
       <div className="relative h-[360px] w-full overflow-hidden">
         {hasValidImage ? (
