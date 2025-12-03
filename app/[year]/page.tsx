@@ -53,7 +53,9 @@ const YearPage = () => {
 
   const handleDelete = async (id: string) => {
     if (!id) return;
+    const previous = games;
     setDeletingId(id);
+    setGames((prev) => prev.filter((g) => (g.id ?? g._id ?? "") !== id));
     try {
       const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
         method: "DELETE",
@@ -61,12 +63,10 @@ const YearPage = () => {
       if (!res.ok) {
         throw new Error("Failed to delete");
       }
-      setGames((prev) =>
-        prev.filter((g) => (g.id ?? g._id ?? "") !== id)
-      );
     } catch (err) {
       console.error("Delete failed", err);
       alert("Failed to delete game.");
+      setGames(previous);
     } finally {
       setDeletingId(null);
     }
