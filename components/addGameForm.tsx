@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useState, type FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
@@ -74,19 +72,31 @@ const AddGameForm = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save game.");
+      const raw = await response.text();
+      let parsed: any = null;
+      try {
+        parsed = raw ? JSON.parse(raw) : null;
+      } catch {
+        parsed = null;
       }
 
-      const data = await response.json();
-      console.log("Game added:", data);
-      setStatus("success");
-      setStatusMessage("Game saved successfully.");
-      event.currentTarget.reset();
-    } catch (error) {
+      if (response.ok) {
+        console.log("Game added:", parsed || raw);
+        setStatus("success");
+        setStatusMessage(
+          parsed?.message || "Game saved successfully."
+        );
+        event.currentTarget.reset();
+      } else {
+        setStatus("error");
+        setStatusMessage(
+          parsed?.message || "Game was not saved."
+        );
+      }
+    } catch (error: any) {
       console.error("Save error:", error);
       setStatus("error");
-      setStatusMessage("Game was not saved.");
+      setStatusMessage(error?.message || "Game was not saved.");
     } finally {
       setSubmitting(false);
     }
