@@ -37,8 +37,7 @@ const YearPage = () => {
           `${API_BASE_URL}/admin/games/byYear/${year}`
         );
         const data = await res.json();
-        // Show newest-added first
-        setGames(Array.isArray(data) ? [...data].reverse() : []);
+        setGames(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch games", err);
       } finally {
