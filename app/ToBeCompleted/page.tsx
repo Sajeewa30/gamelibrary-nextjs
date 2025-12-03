@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import RequireAuth from "@/components/requireAuth";
