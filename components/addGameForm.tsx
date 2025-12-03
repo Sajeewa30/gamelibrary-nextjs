@@ -1,6 +1,8 @@
 'use client'
 
-import type { FormEvent } from "react";
+'use client'
+
+import { useState, type FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
@@ -8,9 +10,17 @@ const AddGameForm = () => {
   const webUrl = API_BASE_URL;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<"success" | "error" | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setStatus(null);
+    setStatusMessage("");
 
     const formData = new FormData(event.currentTarget);
 
@@ -30,11 +40,16 @@ const AddGameForm = () => {
         if (res.ok) {
           imageUrl = await res.text();
         } else {
-          alert("Image upload failed");
+          setStatus("error");
+          setStatusMessage("Image upload failed.");
+          setSubmitting(false);
           return;
         }
       } catch (error) {
         console.error("Upload error:", error);
+        setStatus("error");
+        setStatusMessage("Image upload failed.");
+        setSubmitting(false);
         return;
       }
     }
@@ -50,18 +65,31 @@ const AddGameForm = () => {
       imageUrl,
     };
 
-    await fetchWithAuth(`${webUrl}/admin/addGameItem`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Game added:", data);
-        alert("Game successfully added!");
+    try {
+      const response = await fetchWithAuth(`${webUrl}/admin/addGameItem`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to save game.");
+      }
+
+      const data = await response.json();
+      console.log("Game added:", data);
+      setStatus("success");
+      setStatusMessage("Game saved successfully.");
+      event.currentTarget.reset();
+    } catch (error) {
+      console.error("Save error:", error);
+      setStatus("error");
+      setStatusMessage("Game was not saved.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -171,12 +199,25 @@ const AddGameForm = () => {
         />
       </label>
 
+      {status && (
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            status === "success"
+              ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-100"
+              : "border-red-400/50 bg-red-500/10 text-red-100"
+          }`}
+        >
+          {statusMessage}
+        </div>
+      )}
+
       <div className="flex justify-end">
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-indigo-900/40"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-indigo-900/40 disabled:cursor-not-allowed disabled:opacity-60"
           type="submit"
+          disabled={submitting}
         >
-          Save game
+          {submitting ? "Saving..." : "Save game"}
         </button>
       </div>
     </form>
