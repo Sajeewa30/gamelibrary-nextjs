@@ -29,10 +29,13 @@ const Favourites = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
 
-  const gameId = (game: GameType) =>
-    [game.id, game._id, game.gameId, game.itemId]
-      .find((val) => typeof val === "string" && val.length > 0)
-      ?.toString() ?? "";
+  const gameId = (game: GameType): string => {
+    if (game.id) return game.id.toString();
+    if (game._id) return game._id.toString();
+    if (game.gameId) return game.gameId.toString();
+    if (game.itemId) return game.itemId.toString();
+    return "";
+  };
 
   useEffect(() => {
     const fetchFavourites = async () => {
