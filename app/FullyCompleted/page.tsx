@@ -27,6 +27,9 @@ const FullyCompleted = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
 
+  const gameId = (game: GameType) =>
+    (game.id ?? game._id ?? game["gameId"] ?? game["itemId"] ?? "").toString();
+
   useEffect(() => {
     const fetchHundredPercent = async () => {
       try {
@@ -51,7 +54,7 @@ const FullyCompleted = () => {
     if (!id) return;
     const previous = games;
     setDeletingId(id);
-    setGames((prev) => prev.filter((g) => (g.id ?? g._id ?? "") !== id));
+    setGames((prev) => prev.filter((g) => gameId(g) !== id));
     try {
       const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
         method: "DELETE",
@@ -100,18 +103,18 @@ const FullyCompleted = () => {
               <p className="text-white/70 text-lg">
                 No 100% completed games found.
               </p>
-            ) : (
-              games.map((game) => (
+                ) : (
+                  games.map((game) => (
                     <Game
-                      key={`${game.name}-${game.year}`}
-                      id={(game.id ?? game._id ?? "").toString()}
+                      key={gameId(game) || `${game.name}-${game.year}`}
+                      id={gameId(game)}
                       name={game.name}
                       year={game.year.toString()}
                       imageUrl={game.imageUrl}
                       specialDescription={game.specialDescription}
                       showDelete
                       onDelete={handleDelete}
-                      disableDelete={deletingId === (game.id ?? game._id ?? "")}
+                      disableDelete={deletingId === gameId(game)}
                     />
                   ))
                 )}
