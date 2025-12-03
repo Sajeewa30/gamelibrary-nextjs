@@ -31,7 +31,8 @@ const Favourites = () => {
           `${API_BASE_URL}/admin/getFavouriteGames`
         );
         const data = await res.json();
-        setGames(data);
+        // Show newest-added first
+        setGames(Array.isArray(data) ? [...data].reverse() : []);
       } catch (error) {
         console.error("Error fetching favourite games:", error);
       } finally {

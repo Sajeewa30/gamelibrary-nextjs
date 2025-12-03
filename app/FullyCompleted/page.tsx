@@ -31,7 +31,8 @@ const FullyCompleted = () => {
           `${API_BASE_URL}/admin/getHundredPercentCompletedGames`
         );
         const data = await res.json();
-        setGames(data);
+        // Show newest-added first
+        setGames(Array.isArray(data) ? [...data].reverse() : []);
       } catch (error) {
         console.error("Error fetching 100% completed games:", error);
       } finally {
