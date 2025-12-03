@@ -49,8 +49,8 @@ const YearPage = () => {
         const res = await fetchWithAuth(
           `${API_BASE_URL}/admin/games/byYear/${year}`
         );
-        const data = await res.json();
-        setGames(Array.isArray(data) ? data : []);
+        const data: unknown = await res.json();
+        setGames(Array.isArray(data) ? (data as GameType[]) : []);
       } catch (err) {
         console.error("Failed to fetch games", err);
       } finally {

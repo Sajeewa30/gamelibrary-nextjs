@@ -43,8 +43,8 @@ const Favourites = () => {
         const res = await fetchWithAuth(
           `${API_BASE_URL}/admin/getFavouriteGames`
         );
-        const data = await res.json();
-        setGames(Array.isArray(data) ? data : []);
+        const data: unknown = await res.json();
+        setGames(Array.isArray(data) ? (data as GameType[]) : []);
       } catch (error) {
         console.error("Error fetching favourite games:", error);
       } finally {

@@ -43,8 +43,8 @@ const FullyCompleted = () => {
         const res = await fetchWithAuth(
           `${API_BASE_URL}/admin/getHundredPercentCompletedGames`
         );
-        const data = await res.json();
-        setGames(Array.isArray(data) ? data : []);
+        const data: unknown = await res.json();
+        setGames(Array.isArray(data) ? (data as GameType[]) : []);
       } catch (error) {
         console.error("Error fetching 100% completed games:", error);
       } finally {
