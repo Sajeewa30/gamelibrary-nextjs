@@ -136,15 +136,10 @@ const YearPage = () => {
                     }
                     const updated =
                       (await res.json()) as Partial<GameType> | undefined;
-                    const targetYear = Number(year);
                     setGames((prev) =>
-                      prev
-                        .map((g) =>
-                          gameId(g) === id
-                            ? { ...g, ...payload, ...updated }
-                            : g
-                        )
-                        .filter((g) => g.year === targetYear)
+                      prev.map((g) =>
+                        gameId(g) === id ? { ...g, ...payload, ...updated } : g
+                      )
                     );
                   }}
                   disableDelete={deletingId === gameId(game)}

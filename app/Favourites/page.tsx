@@ -131,11 +131,9 @@ const Favourites = () => {
                 const updated =
                   (await res.json()) as Partial<GameType> | undefined;
                 setGames((prev) =>
-                  prev
-                    .map((g) =>
-                      gameId(g) === id ? { ...g, ...payload, ...updated } : g
-                    )
-                    .filter((g) => g.isFavourite)
+                  prev.map((g) =>
+                    gameId(g) === id ? { ...g, ...payload, ...updated } : g
+                  )
                 );
               }}
               disableDelete={deletingId === gameId(game)}
