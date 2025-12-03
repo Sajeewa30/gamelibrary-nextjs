@@ -104,25 +104,44 @@ const Favourites = () => {
               <div className="flex flex-wrap justify-center gap-6">
                 {loading ? (
                   <p className="text-white/70 text-lg">Loading...</p>
-                ) : games.length === 0 ? (
+        ) : games.length === 0 ? (
               <p className="text-white/70 text-lg">No favourite games found.</p>
-                ) : (
-                  games.map((game) => (
-                    <Game
-                      key={gameId(game) || `${game.name}-${game.year}`}
-                      id={gameId(game)}
-                      name={game.name}
-                      year={game.year.toString()}
-                      imageUrl={game.imageUrl}
-                      specialDescription={game.specialDescription}
-                      showDelete
-                      onDelete={handleDelete}
-                      disableDelete={deletingId === gameId(game)}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
+        ) : (
+          games.map((game) => (
+            <Game
+              key={gameId(game) || `${game.name}-${game.year}`}
+              game={game}
+              showActions
+              onDelete={handleDelete}
+              onUpdate={async (id, payload) => {
+                const res = await fetchWithAuth(
+                  `${API_BASE_URL}/admin/games/${id}`,
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                  }
+                );
+                if (!res.ok) {
+                  const errText = await res.text();
+                  throw new Error(errText || "Failed to update game");
+                }
+                const updated =
+                  (await res.json()) as Partial<GameType> | undefined;
+                setGames((prev) =>
+                  prev.map((g) =>
+                    gameId(g) === id ? { ...g, ...payload, ...updated } : g
+                  )
+                );
+              }}
+              disableDelete={deletingId === gameId(game)}
+            />
+          ))
+        )}
+      </div>
+    </div>
       </div>
       </div>
     </RequireAuth>
