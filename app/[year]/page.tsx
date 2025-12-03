@@ -54,11 +54,7 @@ const YearPage = () => {
           { cache: "no-store" }
         );
         const data: unknown = await res.json();
-        setGames(
-          Array.isArray(data)
-            ? (data as GameType[]).filter((g) => g.isCompleted)
-            : []
-        );
+        setGames(Array.isArray(data) ? (data as GameType[]) : []);
       } catch (err) {
         console.error("Failed to fetch games", err);
       } finally {
