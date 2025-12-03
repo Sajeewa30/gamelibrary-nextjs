@@ -44,7 +44,8 @@ const ToBeCompleted = () => {
       setLoading(true);
       try {
         const res = await fetchWithAuth(
-          `${API_BASE_URL}/admin/games/toBeCompleted`
+          `${API_BASE_URL}/admin/games/toBeCompleted`,
+          { cache: "no-store" }
         );
         const data: unknown = await res.json();
         setGames(

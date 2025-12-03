@@ -1,5 +1,8 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -47,7 +50,8 @@ const YearPage = () => {
     const fetchGamesByYear = async () => {
       try {
         const res = await fetchWithAuth(
-          `${API_BASE_URL}/admin/games/byYear/${year}`
+          `${API_BASE_URL}/admin/games/byYear/${year}`,
+          { cache: "no-store" }
         );
         const data: unknown = await res.json();
         setGames(
