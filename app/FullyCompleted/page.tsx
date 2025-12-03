@@ -135,9 +135,13 @@ const FullyCompleted = () => {
                         const updated =
                           (await res.json()) as Partial<GameType> | undefined;
                         setGames((prev) =>
-                          prev.map((g) =>
-                            gameId(g) === id ? { ...g, ...payload, ...updated } : g
-                          )
+                          prev
+                            .map((g) =>
+                              gameId(g) === id
+                                ? { ...g, ...payload, ...updated }
+                                : g
+                            )
+                            .filter((g) => g.isHundredPercent)
                         );
                       }}
                       disableDelete={deletingId === gameId(game)}
