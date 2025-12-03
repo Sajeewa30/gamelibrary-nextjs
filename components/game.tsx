@@ -253,7 +253,7 @@ const Game = ({
 
       {editing && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0c1224] p-5 text-sm text-white shadow-2xl shadow-black/40 max-h-[80vh] overflow-y-auto">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0c1224] p-5 text-sm text-white shadow-2xl shadow-black/40 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Update game</h3>
               <button
