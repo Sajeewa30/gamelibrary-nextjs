@@ -16,11 +16,13 @@ const AddGameForm = () => {
     event.preventDefault();
     if (submitting) return;
 
+    const formElement = event.currentTarget;
+
     setSubmitting(true);
     setStatus(null);
     setStatusMessage("");
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(formElement);
 
     let imageUrl = "";
     const imageFile = formData.get("image") as File | null;
@@ -86,7 +88,7 @@ const AddGameForm = () => {
         setStatusMessage(
           parsed?.message || "Game saved successfully."
         );
-        event.currentTarget.reset();
+        formElement.reset();
       } else {
         setStatus("error");
         setStatusMessage(
