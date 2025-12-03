@@ -107,7 +107,9 @@ const GameDetailPage = () => {
   const handleDeleteMedia = async () => {
     if (lightboxIndex === null || !resolvedId || !game) return;
     const list =
-      lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
+      lightboxType === "image"
+        ? game.gallery ?? []
+        : game.videos ?? [];
     if (!list.length) return;
 
     const url = list[lightboxIndex];
