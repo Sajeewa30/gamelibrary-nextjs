@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
@@ -36,6 +37,7 @@ type GameProps = {
     }
   ) => Promise<void>;
   disableDelete?: boolean;
+  clickable?: boolean;
 };
 
 // Helper function to validate URL
@@ -55,6 +57,7 @@ const Game = ({
   onDelete,
   onUpdate,
   disableDelete = false,
+  clickable = true,
 }: GameProps) => {
   const resolvedId = useMemo(() => {
     if (game.id) return game.id.toString();
@@ -225,7 +228,25 @@ const Game = ({
         </div>
       )}
       <div className="relative h-[360px] w-full overflow-hidden">
-        {hasValidImage ? (
+        {clickable ? (
+          <Link href={`/game/${resolvedId || ""}`} className="block h-full w-full">
+            {hasValidImage ? (
+              <Image
+                src={game.imageUrl}
+                alt={`Image for ${game.name}`}
+                fill
+                sizes="280px"
+                className="object-cover transition duration-500 group-hover:scale-105"
+                unoptimized
+                priority={false}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-700 text-white/60">
+                No image available
+              </div>
+            )}
+          </Link>
+        ) : hasValidImage ? (
           <Image
             src={game.imageUrl}
             alt={`Image for ${game.name}`}
