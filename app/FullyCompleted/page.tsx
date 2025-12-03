@@ -30,14 +30,7 @@ const FullyCompleted = () => {
   const { user, loading: authLoading } = useAuth();
 
   const gameId = (game: GameType) =>
-    [
-      game.id,
-      game._id,
-      game.gameId,
-      game.itemId,
-      (game as Record<string, unknown>)?.gameId as string | undefined,
-      (game as Record<string, unknown>)?.itemId as string | undefined,
-    ]
+    [game.id, game._id, game.gameId, game.itemId]
       .find((val) => typeof val === "string" && val.length > 0)
       ?.toString() ?? "";
 
