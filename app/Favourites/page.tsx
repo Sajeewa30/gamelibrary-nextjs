@@ -11,6 +11,8 @@ import { useAuth } from "@/components/authProvider";
 type GameType = {
   id?: string;
   _id?: string;
+  gameId?: string;
+  itemId?: string;
   name: string;
   year: number;
   completedYear: number;
