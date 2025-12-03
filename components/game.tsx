@@ -252,8 +252,14 @@ const Game = ({
       </div>
 
       {editing && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0c1224] p-5 text-sm text-white shadow-2xl shadow-black/40 max-h-[85vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
+          onClick={() => !saving && setEditing(false)}
+        >
+          <div
+            className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0c1224] p-5 text-sm text-white shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto md:w-1/2"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Update game</h3>
               <button
@@ -274,7 +280,7 @@ const Game = ({
                   className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
                 />
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <label className="flex flex-col gap-1">
                   <span className="text-white/70">Year</span>
                   <input
