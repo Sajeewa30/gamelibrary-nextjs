@@ -41,6 +41,8 @@ const GameDetailPage = () => {
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
+  const [deletingMedia, setDeletingMedia] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const resolvedId = useMemo(() => {
@@ -99,6 +101,49 @@ const GameDetailPage = () => {
       alert(err?.message || "Failed to save note");
     } finally {
       setSavingNote(false);
+    }
+  };
+
+  const handleDeleteMedia = async () => {
+    if (lightboxIndex === null || !resolvedId) return;
+    const list = lightboxType === "image" ? game.gallery : game.videos;
+    if (!list || list.length === 0) return;
+
+    const url = list[lightboxIndex];
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this ${lightboxType}?`
+    );
+    if (!confirmed) return;
+    setDeletingMedia(true);
+    try {
+      const res = await fetchWithAuth(
+        `${API_BASE_URL}/admin/games/${resolvedId}/media`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, type: lightboxType }),
+        }
+      );
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Failed to delete media");
+      }
+      const data = (await res.json()) as { gallery?: string[]; videos?: string[] };
+      setGame((prev) =>
+        prev
+          ? {
+              ...prev,
+              gallery: data.gallery ?? prev.gallery ?? [],
+              videos: data.videos ?? prev.videos ?? [],
+            }
+          : prev
+      );
+      setLightboxIndex(null);
+    setLightboxType("image");
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete media");
+    } finally {
+      setDeletingMedia(false);
     }
   };
 
@@ -310,7 +355,11 @@ const GameDetailPage = () => {
                   game.videos.map((url) => (
                     <div
                       key={url}
-                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30"
+                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
+                      onClick={() => {
+                        setLightboxType("video");
+                        setLightboxIndex(game.videos?.indexOf(url) ?? null);
+                      }}
                     >
                       <video controls className="w-full">
                         <source src={url} />
@@ -345,7 +394,7 @@ const GameDetailPage = () => {
         </div>
       </div>
 
-      {mounted && lightboxIndex !== null && game.gallery && game.gallery.length > 0 && (
+      {mounted && lightboxIndex !== null && (
         createPortal(
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
@@ -354,11 +403,14 @@ const GameDetailPage = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                const list =
+                  lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
+                if (!list.length) return;
                 setLightboxIndex((prev) =>
                   prev === null
                     ? 0
                     : prev === 0
-                    ? game.gallery!.length - 1
+                    ? list.length - 1
                     : prev - 1
                 );
               }}
@@ -370,22 +422,36 @@ const GameDetailPage = () => {
               className="max-h-[85vh] max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl shadow-black/60"
               onClick={(e) => e.stopPropagation()}
             >
-              <Image
-                src={game.gallery[lightboxIndex]}
-                alt="Gallery item"
-                width={1400}
-                height={900}
-                className="h-full w-full max-h-[85vh] object-contain"
-                unoptimized
-              />
+              {lightboxType === "image" && game.gallery?.length ? (
+                <Image
+                  src={game.gallery[lightboxIndex]}
+                  alt="Gallery item"
+                  width={1400}
+                  height={900}
+                  className="h-full w-full max-h-[85vh] object-contain"
+                  unoptimized
+                />
+              ) : lightboxType === "video" && game.videos?.length ? (
+                <div className="relative h-full w-full max-h-[85vh]">
+                  <video
+                    controls
+                    autoPlay
+                    className="h-full w-full max-h-[85vh] object-contain"
+                    src={game.videos[lightboxIndex]}
+                  />
+                </div>
+              ) : null}
             </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                const list =
+                  lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
+                if (!list.length) return;
                 setLightboxIndex((prev) =>
                   prev === null
                     ? 0
-                    : prev === game.gallery!.length - 1
+                    : prev === list.length - 1
                     ? 0
                     : prev + 1
                 );
@@ -394,12 +460,27 @@ const GameDetailPage = () => {
             >
               ›
             </button>
-            <button
-              onClick={() => setLightboxIndex(null)}
-              className="absolute right-6 top-6 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
-            >
-              ✕
-            </button>
+            <div className="absolute right-6 top-6 flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteMedia();
+                }}
+                disabled={deletingMedia}
+                className="rounded-full border border-red-300/50 bg-red-500/30 px-3 py-2 text-white shadow-sm shadow-black/40 transition hover:border-red-200/80 hover:bg-red-500/50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deletingMedia ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex(null);
+                }}
+                className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
+              >
+                ✕
+              </button>
+            </div>
           </div>,
           document.body
         )
