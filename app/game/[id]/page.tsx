@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import RequireAuth from "@/components/requireAuth";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { API_BASE_URL } from "@/lib/api";
@@ -39,6 +40,8 @@ const GameDetailPage = () => {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const resolvedId = useMemo(() => {
     if (!game) return gameIdParam;
@@ -72,6 +75,10 @@ const GameDetailPage = () => {
       fetchGame();
     }
   }, [gameIdParam]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSaveNote = async (e: FormEvent) => {
     e.preventDefault();
@@ -251,7 +258,8 @@ const GameDetailPage = () => {
                   game.gallery.map((url) => (
                     <div
                       key={url}
-                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30"
+                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
+                      onClick={() => setLightboxIndex(game.gallery?.indexOf(url) ?? null)}
                     >
                       <Image
                         src={url}
@@ -336,6 +344,66 @@ const GameDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {mounted && lightboxIndex !== null && game.gallery && game.gallery.length > 0 && (
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+            onClick={() => setLightboxIndex(null)}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) =>
+                  prev === null
+                    ? 0
+                    : prev === 0
+                    ? game.gallery!.length - 1
+                    : prev - 1
+                );
+              }}
+              className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
+            >
+              ‹
+            </button>
+            <div
+              className="max-h-[85vh] max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl shadow-black/60"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={game.gallery[lightboxIndex]}
+                alt="Gallery item"
+                width={1400}
+                height={900}
+                className="h-full w-full max-h-[85vh] object-contain"
+                unoptimized
+              />
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) =>
+                  prev === null
+                    ? 0
+                    : prev === game.gallery!.length - 1
+                    ? 0
+                    : prev + 1
+                );
+              }}
+              className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
+            >
+              ›
+            </button>
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="absolute right-6 top-6 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
+            >
+              ✕
+            </button>
+          </div>,
+          document.body
+        )
+      )}
     </RequireAuth>
   );
 };
