@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import RequireAuth from "@/components/requireAuth";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { API_BASE_URL } from "@/lib/api";
+import { useAuth } from "@/components/authProvider";
 
 type GameDetail = {
   id?: string;
@@ -31,6 +32,7 @@ const GameDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const gameIdParam = params?.id as string;
+  const { user, loading: authLoading } = useAuth();
 
   const [game, setGame] = useState<GameDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,8 @@ const GameDetailPage = () => {
       try {
         const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${gameIdParam}`);
         if (!res.ok) {
-          throw new Error("Failed to load game");
+          const txt = await res.text();
+          throw new Error(txt || "Failed to load game");
         }
         const data = (await res.json()) as GameDetail;
         setGame(data);
@@ -73,10 +76,10 @@ const GameDetailPage = () => {
       }
     };
 
-    if (gameIdParam) {
+    if (gameIdParam && user && !authLoading) {
       fetchGame();
     }
-  }, [gameIdParam]);
+  }, [gameIdParam, user, authLoading]);
 
   useEffect(() => {
     setMounted(true);
@@ -187,7 +190,7 @@ const GameDetailPage = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <RequireAuth>
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
