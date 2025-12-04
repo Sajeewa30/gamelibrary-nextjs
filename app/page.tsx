@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { useAuth } from "@/components/authProvider";
+import { auth } from "@/lib/firebase";
 
 export default function Home() {
   const currentYear = new Date().getFullYear();
@@ -30,6 +31,22 @@ export default function Home() {
   const scrollToMain = () => {
     mainRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Temporary helper to print an ID token for one-time automation
+  useEffect(() => {
+    const printToken = async () => {
+      if (auth?.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        console.log("----------- FIREBASE ID TOKEN -----------");
+        console.log(token);
+        console.log("----------------------------------------");
+      } else {
+        console.log("No user signed in; cannot fetch token.");
+      }
+    };
+
+    printToken();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
