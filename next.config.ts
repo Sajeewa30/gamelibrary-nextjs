@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'images.igdb.com'],
   },
 };
 
