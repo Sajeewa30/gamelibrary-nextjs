@@ -135,6 +135,12 @@ export default function Home() {
                   >
                     Open {year}
                   </Link>
+                  <Link
+                    href="/discover"
+                    className="rounded-lg border border-amber-400/30 bg-white/5 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:border-amber-400/60 hover:bg-white/10"
+                  >
+                    AI discover
+                  </Link>
                   <input
                     type="number"
                     id="year"
@@ -150,6 +156,25 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          <Link
+            href="/discover"
+            className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:bg-white/10"
+          >
+            <div className="absolute -left-10 -top-10 h-28 w-28 rounded-full bg-sky-500/10 blur-3xl" />
+            <div className="absolute -right-16 -bottom-16 h-32 w-32 rounded-full bg-indigo-500/10 blur-3xl" />
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
+                AI
+              </div>
+              <div>
+                <p className="text-sm text-white/60">Discover</p>
+                <p className="text-lg font-semibold text-white">
+                  Browse AI-curated releases
+                </p>
+              </div>
+            </div>
+          </Link>
 
           <Link
             href="/ToBeCompleted"
