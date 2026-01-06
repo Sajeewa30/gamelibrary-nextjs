@@ -47,6 +47,8 @@ const DiscoverPage = () => {
   const [selectedGame, setSelectedGame] = useState<AiGame | null>(null);
   const [formState, setFormState] = useState<AddFormState>(defaultFormState);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"success" | "error" | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const loadGames = async () => {
     setLoading(true);
@@ -106,11 +108,15 @@ const DiscoverPage = () => {
       ...defaultFormState,
       completedYear: currentYear,
     });
+    setStatus(null);
+    setStatusMessage("");
   };
 
   const closeAddModal = () => {
     setSelectedGame(null);
     setSaving(false);
+    setStatus(null);
+    setStatusMessage("");
   };
 
   const handleAddSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -131,6 +137,8 @@ const DiscoverPage = () => {
     };
 
     setSaving(true);
+    setStatus(null);
+    setStatusMessage("");
     try {
       const res = await fetchWithAuth(`${API_BASE_URL}/admin/addGameItem`, {
         method: "POST",
@@ -139,16 +147,28 @@ const DiscoverPage = () => {
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        throw new Error("Failed to add game.");
+
+      const raw = await res.text();
+      let parsed: any = null;
+      try {
+        parsed = raw ? JSON.parse(raw) : null;
+      } catch {
+        parsed = null;
       }
-      alert("Game successfully added!");
-      closeAddModal();
+
+      if (res.ok) {
+        setStatus("success");
+        setStatusMessage(parsed?.message || "Game saved successfully.");
+      } else {
+        setStatus("error");
+        setStatusMessage(parsed?.message || "Game was not saved.");
+      }
     } catch (err) {
       console.error(err);
-      alert("Unable to add the game right now.");
-      setSaving(false);
+      setStatus("error");
+      setStatusMessage("Unable to add the game right now.");
     }
+    setSaving(false);
   };
 
   return (
@@ -436,6 +456,18 @@ const DiscoverPage = () => {
                   Favourite
                 </label>
               </div>
+
+              {status && (
+                <div
+                  className={`rounded-xl border px-4 py-3 text-sm ${
+                    status === "success"
+                      ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-100"
+                      : "border-red-400/50 bg-red-500/10 text-red-100"
+                  }`}
+                >
+                  {statusMessage}
+                </div>
+              )}
 
               <div className="flex justify-end gap-3">
                 <button
