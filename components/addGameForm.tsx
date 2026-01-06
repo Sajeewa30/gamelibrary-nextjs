@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { uploadImageWithPresign } from "@/lib/s3Upload";
 
 const AddGameForm = () => {
   const webUrl = API_BASE_URL;
@@ -28,23 +29,8 @@ const AddGameForm = () => {
     const imageFile = formData.get("image") as File | null;
 
     if (imageFile && imageFile.size > 0) {
-      const uploadData = new FormData();
-      uploadData.append("image", imageFile);
-
       try {
-        const res = await fetchWithAuth(`${webUrl}/admin/uploadImage`, {
-          method: "POST",
-          body: uploadData,
-        });
-
-        if (res.ok) {
-          imageUrl = await res.text();
-        } else {
-          setStatus("error");
-          setStatusMessage("Image upload failed.");
-          setSubmitting(false);
-          return;
-        }
+        imageUrl = await uploadImageWithPresign(imageFile);
       } catch (error) {
         console.error("Upload error:", error);
         setStatus("error");
