@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { uploadImageWithPresign } from "@/lib/s3Upload";
 
 type GameProps = {
   game: {
@@ -133,8 +132,17 @@ const Game = ({
 
     let imageUrl = formImageUrl;
     if (newImageFile && newImageFile.size > 0) {
+      const uploadData = new FormData();
+      uploadData.append("image", newImageFile);
       try {
-        imageUrl = await uploadImageWithPresign(newImageFile);
+        const res = await fetchWithAuth(`${API_BASE_URL}/admin/uploadImage`, {
+          method: "POST",
+          body: uploadData,
+        });
+        if (!res.ok) {
+          throw new Error("Image upload failed.");
+        }
+        imageUrl = await res.text();
       } catch (err: any) {
         setError(err?.message || "Image upload failed.");
         setSaving(false);
