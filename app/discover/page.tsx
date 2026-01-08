@@ -107,6 +107,7 @@ const DiscoverPage = () => {
     setFormState({
       ...defaultFormState,
       completedYear: currentYear,
+      specialDescription: game.summary || "",
     });
     setStatus(null);
     setStatusMessage("");
