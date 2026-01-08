@@ -104,9 +104,10 @@ const DiscoverPage = () => {
 
   const openAddModal = (game: AiGame) => {
     setSelectedGame(game);
+    const releaseYear = game.releaseYear ?? currentYear;
     setFormState({
       ...defaultFormState,
-      completedYear: currentYear,
+      completedYear: releaseYear,
       specialDescription: game.summary || "",
     });
     setStatus(null);
