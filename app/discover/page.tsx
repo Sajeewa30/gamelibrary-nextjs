@@ -55,9 +55,7 @@ const DiscoverPage = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/public/ai/games?year=${year}&count=100`
-      );
+      const res = await fetch(`${API_BASE_URL}/public/ai/games?year=${year}`);
       if (!res.ok) {
         throw new Error("Failed to load games.");
       }
