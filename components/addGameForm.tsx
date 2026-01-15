@@ -61,6 +61,9 @@ const AddGameForm = () => {
       isCompleted: formData.get("isCompleted") === "on",
       isHundredPercent: formData.get("isHundredPercent") === "on",
       isFavourite: formData.get("isFavourite") === "on",
+      completed: formData.get("isCompleted") === "on",
+      hundredPercent: formData.get("isHundredPercent") === "on",
+      favourite: formData.get("isFavourite") === "on",
       specialDescription: String(formData.get("specialDescription") ?? ""),
       imageUrl,
     };

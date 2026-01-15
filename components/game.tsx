@@ -79,11 +79,17 @@ const Game = ({
   const [formCompletedYear, setFormCompletedYear] = useState(
     game.completedYear.toString()
   );
-  const [formIsCompleted, setFormIsCompleted] = useState(game.isCompleted);
-  const [formIsHundredPercent, setFormIsHundredPercent] = useState(
-    game.isHundredPercent
+  const [formIsCompleted, setFormIsCompleted] = useState(
+    game.isCompleted ?? (game as { completed?: boolean }).completed ?? false
   );
-  const [formIsFavourite, setFormIsFavourite] = useState(game.isFavourite);
+  const [formIsHundredPercent, setFormIsHundredPercent] = useState(
+    game.isHundredPercent ??
+      (game as { hundredPercent?: boolean }).hundredPercent ??
+      false
+  );
+  const [formIsFavourite, setFormIsFavourite] = useState(
+    game.isFavourite ?? (game as { favourite?: boolean }).favourite ?? false
+  );
   const [formDescription, setFormDescription] = useState(
     game.specialDescription
   );
@@ -95,9 +101,17 @@ const Game = ({
     setFormName(game.name);
     setFormYear(game.year.toString());
     setFormCompletedYear(game.completedYear.toString());
-    setFormIsCompleted(game.isCompleted);
-    setFormIsHundredPercent(game.isHundredPercent);
-    setFormIsFavourite(game.isFavourite);
+    setFormIsCompleted(
+      game.isCompleted ?? (game as { completed?: boolean }).completed ?? false
+    );
+    setFormIsHundredPercent(
+      game.isHundredPercent ??
+        (game as { hundredPercent?: boolean }).hundredPercent ??
+        false
+    );
+    setFormIsFavourite(
+      game.isFavourite ?? (game as { favourite?: boolean }).favourite ?? false
+    );
     setFormDescription(game.specialDescription);
     setFormImageUrl(game.imageUrl);
     setNewImageFile(null);
@@ -157,6 +171,9 @@ const Game = ({
       isCompleted: formIsCompleted,
       isHundredPercent: formIsHundredPercent,
       isFavourite: formIsFavourite,
+      completed: formIsCompleted,
+      hundredPercent: formIsHundredPercent,
+      favourite: formIsFavourite,
       specialDescription: formDescription,
       imageUrl,
     };

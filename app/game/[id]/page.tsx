@@ -216,6 +216,13 @@ const GameDetailPage = () => {
     );
   }
 
+  const isCompleted = game.isCompleted ?? (game as { completed?: boolean }).completed ?? false;
+  const isHundredPercent =
+    game.isHundredPercent ??
+    (game as { hundredPercent?: boolean }).hundredPercent ??
+    false;
+  const isFavourite = game.isFavourite ?? (game as { favourite?: boolean }).favourite ?? false;
+
   return (
     <RequireAuth>
       <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
@@ -228,8 +235,8 @@ const GameDetailPage = () => {
               <h1 className="text-4xl font-semibold text-white/90">{game.name}</h1>
               <p className="text-white/60">
                 Year: {game.year} · Completed: {game.completedYear} ·{" "}
-                {game.isCompleted ? "Finished" : "In progress"} ·{" "}
-                {game.isHundredPercent ? "100%" : "Not 100%"}
+                {isCompleted ? "Finished" : "In progress"} ·{" "}
+                {isHundredPercent ? "100%" : "Not 100%"}
               </p>
             </div>
             <Link
@@ -294,9 +301,9 @@ const GameDetailPage = () => {
                 <ul className="mt-2 text-sm text-white/70 space-y-1">
                   <li>Year: {game.year}</li>
                   <li>Completed year: {game.completedYear}</li>
-                  <li>Status: {game.isCompleted ? "Finished" : "In progress"}</li>
-                  <li>100%: {game.isHundredPercent ? "Yes" : "No"}</li>
-                  <li>Favourite: {game.isFavourite ? "Yes" : "No"}</li>
+                  <li>Status: {isCompleted ? "Finished" : "In progress"}</li>
+                  <li>100%: {isHundredPercent ? "Yes" : "No"}</li>
+                  <li>Favourite: {isFavourite ? "Yes" : "No"}</li>
                 </ul>
               </div>
             </div>

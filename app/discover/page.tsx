@@ -132,6 +132,9 @@ const DiscoverPage = () => {
       isCompleted: formState.isCompleted,
       isHundredPercent: formState.isHundredPercent,
       isFavourite: formState.isFavourite,
+      completed: formState.isCompleted,
+      hundredPercent: formState.isHundredPercent,
+      favourite: formState.isFavourite,
       specialDescription: formState.specialDescription,
       imageUrl: selectedGame.coverUrl ?? "",
     };
