@@ -28,6 +28,9 @@ type GameDetail = {
   videos?: string[];
 };
 
+const GAME_CACHE_TTL_MS = 2 * 60 * 1000;
+const gameCache = new Map<string, { data: GameDetail; expiresAt: number }>();
+
 const GameDetailPage = () => {
   const params = useParams();
   const router = useRouter();
@@ -69,6 +72,10 @@ const GameDetailPage = () => {
         const data = (await res.json()) as GameDetail;
         setGame(data);
         setNote(data.note ?? "");
+        gameCache.set(gameIdParam, {
+          data,
+          expiresAt: Date.now() + GAME_CACHE_TTL_MS,
+        });
       } catch (err: any) {
         setError(err?.message || "Failed to load game");
       } finally {
@@ -77,6 +84,13 @@ const GameDetailPage = () => {
     };
 
     if (gameIdParam && user && !authLoading) {
+      const cached = gameCache.get(gameIdParam);
+      if (cached && cached.expiresAt > Date.now()) {
+        setGame(cached.data);
+        setNote(cached.data.note ?? "");
+        setLoading(false);
+        return;
+      }
       fetchGame();
     }
   }, [gameIdParam, user, authLoading]);
@@ -99,7 +113,17 @@ const GameDetailPage = () => {
         const txt = await res.text();
         throw new Error(txt || "Failed to save note");
       }
-      setGame((prev) => (prev ? { ...prev, note } : prev));
+      setGame((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, note };
+        if (resolvedId) {
+          gameCache.set(resolvedId, {
+            data: updated,
+            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
+          });
+        }
+        return updated;
+      });
     } catch (err: any) {
       alert(err?.message || "Failed to save note");
     } finally {
@@ -138,15 +162,21 @@ const GameDetailPage = () => {
         gallery?: string[];
         videos?: string[];
       };
-      setGame((prev) =>
-        prev
-          ? {
-              ...prev,
-              gallery: data.gallery ?? prev.gallery ?? [],
-              videos: data.videos ?? prev.videos ?? [],
-            }
-          : prev
-      );
+      setGame((prev) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          gallery: data.gallery ?? prev.gallery ?? [],
+          videos: data.videos ?? prev.videos ?? [],
+        };
+        if (resolvedId) {
+          gameCache.set(resolvedId, {
+            data: updated,
+            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
+          });
+        }
+        return updated;
+      });
       setLightboxIndex(null);
       setLightboxType("image");
     } catch (err: any) {
@@ -172,15 +202,21 @@ const GameDetailPage = () => {
         throw new Error(txt || "Failed to upload files");
       }
       const data = (await res.json()) as { gallery?: string[]; videos?: string[] };
-      setGame((prev) =>
-        prev
-          ? {
-              ...prev,
-              gallery: data.gallery ?? prev.gallery ?? [],
-              videos: data.videos ?? prev.videos ?? [],
-            }
-          : prev
-      );
+      setGame((prev) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          gallery: data.gallery ?? prev.gallery ?? [],
+          videos: data.videos ?? prev.videos ?? [],
+        };
+        if (resolvedId) {
+          gameCache.set(resolvedId, {
+            data: updated,
+            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
+          });
+        }
+        return updated;
+      });
       setGalleryFiles([]);
       setVideoFiles([]);
     } catch (err: any) {
@@ -193,8 +229,48 @@ const GameDetailPage = () => {
   if (authLoading || loading) {
     return (
       <RequireAuth>
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
-          Loading game...
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-3">
+                <div className="h-3 w-24 rounded-full bg-white/10 animate-pulse" />
+                <div className="h-8 w-64 rounded-lg bg-white/10 animate-pulse" />
+                <div className="h-4 w-80 rounded-lg bg-white/10 animate-pulse" />
+              </div>
+              <div className="h-9 w-28 rounded-xl bg-white/10 animate-pulse" />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="md:col-span-2">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
+                  <div className="h-5 w-20 rounded-lg bg-white/10 animate-pulse" />
+                  <div className="mt-3 grid gap-5 md:grid-cols-[minmax(220px,320px)_1fr] md:items-stretch">
+                    <div className="aspect-[3/4] w-full rounded-xl border border-white/10 bg-white/5 animate-pulse" />
+                    <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-4">
+                      <div className="h-5 w-24 rounded-lg bg-white/10 animate-pulse" />
+                      <div className="mt-3 flex-1 space-y-3">
+                        <div className="h-4 w-full rounded-lg bg-white/10 animate-pulse" />
+                        <div className="h-4 w-5/6 rounded-lg bg-white/10 animate-pulse" />
+                        <div className="h-4 w-4/6 rounded-lg bg-white/10 animate-pulse" />
+                      </div>
+                      <div className="mt-4 h-9 w-28 rounded-lg bg-white/10 animate-pulse self-end" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
+                  <div className="h-5 w-24 rounded-lg bg-white/10 animate-pulse" />
+                  <div className="mt-3 space-y-2">
+                    <div className="h-4 w-40 rounded-lg bg-white/10 animate-pulse" />
+                    <div className="h-4 w-36 rounded-lg bg-white/10 animate-pulse" />
+                    <div className="h-4 w-32 rounded-lg bg-white/10 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </RequireAuth>
     );
