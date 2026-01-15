@@ -29,7 +29,43 @@ type GameDetail = {
 };
 
 const GAME_CACHE_TTL_MS = 2 * 60 * 1000;
+const GAME_STORAGE_TTL_MS = 10 * 60 * 1000;
+const GAME_STORAGE_KEY = "game-detail-cache-v1";
 const gameCache = new Map<string, { data: GameDetail; expiresAt: number }>();
+
+const readStorageCache = (id: string): GameDetail | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(GAME_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      id: string;
+      data: GameDetail;
+      expiresAt: number;
+    };
+    if (parsed.id !== id) return null;
+    if (parsed.expiresAt < Date.now()) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+};
+
+const writeStorageCache = (id: string, data: GameDetail) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      GAME_STORAGE_KEY,
+      JSON.stringify({
+        id,
+        data,
+        expiresAt: Date.now() + GAME_STORAGE_TTL_MS,
+      })
+    );
+  } catch {
+    // Ignore storage errors.
+  }
+};
 
 const GameDetailPage = () => {
   const params = useParams();
@@ -76,6 +112,7 @@ const GameDetailPage = () => {
           data,
           expiresAt: Date.now() + GAME_CACHE_TTL_MS,
         });
+        writeStorageCache(gameIdParam, data);
       } catch (err: any) {
         setError(err?.message || "Failed to load game");
       } finally {
@@ -88,6 +125,14 @@ const GameDetailPage = () => {
       if (cached && cached.expiresAt > Date.now()) {
         setGame(cached.data);
         setNote(cached.data.note ?? "");
+        setLoading(false);
+        return;
+      }
+
+      const stored = readStorageCache(gameIdParam);
+      if (stored) {
+        setGame(stored);
+        setNote(stored.note ?? "");
         setLoading(false);
         return;
       }
@@ -121,6 +166,7 @@ const GameDetailPage = () => {
             data: updated,
             expiresAt: Date.now() + GAME_CACHE_TTL_MS,
           });
+          writeStorageCache(resolvedId, updated);
         }
         return updated;
       });
@@ -174,6 +220,7 @@ const GameDetailPage = () => {
             data: updated,
             expiresAt: Date.now() + GAME_CACHE_TTL_MS,
           });
+          writeStorageCache(resolvedId, updated);
         }
         return updated;
       });
@@ -214,6 +261,7 @@ const GameDetailPage = () => {
             data: updated,
             expiresAt: Date.now() + GAME_CACHE_TTL_MS,
           });
+          writeStorageCache(resolvedId, updated);
         }
         return updated;
       });
