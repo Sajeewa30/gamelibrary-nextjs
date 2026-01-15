@@ -244,23 +244,38 @@ const GameDetailPage = () => {
             <div className="md:col-span-2">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
                 <h2 className="text-lg font-semibold text-white">Hero</h2>
-                <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                  {game.imageUrl ? (
-                    <Image
-                      src={game.imageUrl}
-                      alt={game.name}
-                      width={900}
-                      height={450}
-                      className="h-[300px] w-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-[300px] w-full items-center justify-center text-white/60">
-                      No image available
+                <div className="mt-3 grid gap-5 md:grid-cols-[minmax(220px,320px)_1fr] md:items-start">
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                    {game.imageUrl ? (
+                      <div className="relative aspect-[3/4] w-full">
+                        <Image
+                          src={game.imageUrl}
+                          alt={game.name}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 320px"
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[3/4] w-full items-center justify-center text-white/60">
+                        No image available
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-white/70">{game.specialDescription}</p>
+                    <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white/70">
+                      <p>
+                        Release year: <span className="text-white/90">{game.year}</span>
+                      </p>
+                      <p>
+                        Completed year:{" "}
+                        <span className="text-white/90">{game.completedYear}</span>
+                      </p>
                     </div>
-                  )}
+                  </div>
                 </div>
-                <p className="mt-3 text-white/70">{game.specialDescription}</p>
               </div>
             </div>
 
