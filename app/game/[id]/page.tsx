@@ -244,7 +244,7 @@ const GameDetailPage = () => {
             <div className="md:col-span-2">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
                 <h2 className="text-lg font-semibold text-white">Hero</h2>
-                <div className="mt-3 grid gap-5 md:grid-cols-[minmax(220px,320px)_1fr] md:items-start">
+                <div className="mt-3 grid gap-5 md:grid-cols-[minmax(220px,320px)_1fr] md:items-stretch">
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
                     {game.imageUrl ? (
                       <div className="relative aspect-[3/4] w-full">
@@ -263,44 +263,32 @@ const GameDetailPage = () => {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-3">
-                    <p className="text-white/70">{game.specialDescription}</p>
-                    <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white/70">
-                      <p>
-                        Release year: <span className="text-white/90">{game.year}</span>
-                      </p>
-                      <p>
-                        Completed year:{" "}
-                        <span className="text-white/90">{game.completedYear}</span>
-                      </p>
-                    </div>
+                  <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
+                    <h3 className="text-lg font-semibold text-white">Game note</h3>
+                    <form onSubmit={handleSaveNote} className="mt-3 flex h-full flex-col gap-3">
+                      <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        rows={10}
+                        className="h-full min-h-[220px] w-full flex-1 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
+                        placeholder="Write a short description, memories, or tips..."
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={savingNote}
+                          className="rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-900/40 transition hover:shadow-lg hover:shadow-indigo-900/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {savingNote ? "Saving..." : "Save note"}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
-                <h2 className="text-lg font-semibold text-white">Memory note</h2>
-                <form onSubmit={handleSaveNote} className="mt-3 space-y-3">
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={6}
-                    className="w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
-                    placeholder="Write your thoughts, memories, or tips..."
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={savingNote}
-                      className="rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-900/40 transition hover:shadow-lg hover:shadow-indigo-900/40 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {savingNote ? "Saving..." : "Save note"}
-                    </button>
-                  </div>
-                </form>
-              </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur-2xl">
                 <h2 className="text-lg font-semibold text-white">Quick stats</h2>
                 <ul className="mt-2 text-sm text-white/70 space-y-1">
