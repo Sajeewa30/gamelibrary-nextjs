@@ -84,36 +84,45 @@ const ToBeCompleted = () => {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#0d152d] to-[#0a0f1f] text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12">
-          <div className="flex items-center justify-between gap-4">
+      <div className="min-h-screen text-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-fuchsia-400/70">
-                Backlog
-              </p>
-              <h1 className="text-4xl font-semibold text-white/90">
+              <div className="inline-block rounded-full border border-violet-400/20 bg-violet-500/10 px-4 py-2 backdrop-blur-sm">
+                <p className="text-xs uppercase tracking-[0.3em] text-violet-300">
+                  Backlog
+                </p>
+              </div>
+              <h1 className="mt-4 bg-gradient-to-r from-white via-violet-100 to-purple-200 bg-clip-text text-5xl font-bold text-transparent">
                 To Be Completed
               </h1>
-              <p className="mt-2 text-white/60">
-                Games you still need to finish. Update status when you complete them.
+              <p className="mt-3 text-lg text-slate-400">
+                Your upcoming adventures waiting to be conquered
               </p>
             </div>
             <Link
               href="/"
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-fuchsia-400/50 hover:bg-white/10"
+              className="rounded-2xl border border-white/20 bg-gradient-to-br from-slate-800/60 to-slate-900/60 px-6 py-3 font-semibold text-white backdrop-blur-xl transition hover:border-indigo-400/40 hover:from-indigo-900/40 hover:to-purple-900/40"
             >
-              ← Back home
+              ← Back Home
             </Link>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
-            <div className="flex flex-wrap justify-center gap-6">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-800/30 via-slate-900/30 to-slate-950/30 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+            <div className="flex flex-wrap justify-center gap-8">
               {loading ? (
-                <p className="text-white/70 text-lg">Loading games...</p>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-500/30 border-t-violet-500"></div>
+                  <p className="mt-4 text-slate-400">Loading backlog...</p>
+                </div>
               ) : games.length === 0 ? (
-                <p className="text-white/70 text-lg">
-                  All caught up! No backlog games.
-                </p>
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="text-6xl">✨</div>
+                  <p className="mt-4 text-xl text-slate-400">
+                    All caught up! No backlog games
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">Your backlog is clear</p>
+                </div>
               ) : (
                 games.map((game) => (
                   <Game
