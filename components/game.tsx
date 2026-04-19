@@ -4,38 +4,14 @@ import Image from "next/image";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { ApiError, fetchWithAuth } from "@/lib/fetchWithAuth";
+import { resolveGameId, type GameType, type GameUpdatePayload } from "@/lib/types";
 
 type GameProps = {
-  game: {
-    id?: string;
-    _id?: string;
-    gameId?: string;
-    itemId?: string;
-    name: string;
-    year: number;
-    completedYear: number;
-    isCompleted: boolean;
-    isHundredPercent: boolean;
-    isFavourite: boolean;
-    specialDescription: string;
-    imageUrl: string;
-  };
+  game: GameType;
   showActions?: boolean;
   onDelete?: (id: string) => void;
-  onUpdate?: (
-    id: string,
-    payload: {
-      name: string;
-      year: number;
-      completedYear: number;
-      isCompleted: boolean;
-      isHundredPercent: boolean;
-      isFavourite: boolean;
-      specialDescription: string;
-      imageUrl: string;
-    }
-  ) => Promise<void>;
+  onUpdate?: (id: string, payload: GameUpdatePayload) => Promise<void>;
   disableDelete?: boolean;
   clickable?: boolean;
 };
@@ -59,13 +35,7 @@ const Game = ({
   disableDelete = false,
   clickable = true,
 }: GameProps) => {
-  const resolvedId = useMemo(() => {
-    if (game.id) return game.id.toString();
-    if (game._id) return game._id.toString();
-    if (game.gameId) return game.gameId.toString();
-    if (game.itemId) return game.itemId.toString();
-    return "";
-  }, [game]);
+  const resolvedId = useMemo(() => resolveGameId(game), [game]);
 
   const hasValidImage = isValidHttpUrl(game.imageUrl);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -80,15 +50,13 @@ const Game = ({
     game.completedYear.toString()
   );
   const [formIsCompleted, setFormIsCompleted] = useState(
-    game.isCompleted ?? (game as { completed?: boolean }).completed ?? false
+    game.isCompleted ?? game.completed ?? false
   );
   const [formIsHundredPercent, setFormIsHundredPercent] = useState(
-    game.isHundredPercent ??
-      (game as { hundredPercent?: boolean }).hundredPercent ??
-      false
+    game.isHundredPercent ?? game.hundredPercent ?? false
   );
   const [formIsFavourite, setFormIsFavourite] = useState(
-    game.isFavourite ?? (game as { favourite?: boolean }).favourite ?? false
+    game.isFavourite ?? game.favourite ?? false
   );
   const [formDescription, setFormDescription] = useState(
     game.specialDescription
@@ -101,17 +69,11 @@ const Game = ({
     setFormName(game.name);
     setFormYear(game.year.toString());
     setFormCompletedYear(game.completedYear.toString());
-    setFormIsCompleted(
-      game.isCompleted ?? (game as { completed?: boolean }).completed ?? false
-    );
+    setFormIsCompleted(game.isCompleted ?? game.completed ?? false);
     setFormIsHundredPercent(
-      game.isHundredPercent ??
-        (game as { hundredPercent?: boolean }).hundredPercent ??
-        false
+      game.isHundredPercent ?? game.hundredPercent ?? false
     );
-    setFormIsFavourite(
-      game.isFavourite ?? (game as { favourite?: boolean }).favourite ?? false
-    );
+    setFormIsFavourite(game.isFavourite ?? game.favourite ?? false);
     setFormDescription(game.specialDescription);
     setFormImageUrl(game.imageUrl);
     setNewImageFile(null);
@@ -157,14 +119,20 @@ const Game = ({
           throw new Error("Image upload failed.");
         }
         imageUrl = await res.text();
-      } catch (err: any) {
-        setError(err?.message || "Image upload failed.");
+      } catch (err) {
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : err instanceof Error
+            ? err.message
+            : "Image upload failed.";
+        setError(message);
         setSaving(false);
         return;
       }
     }
 
-    const payload = {
+    const payload: GameUpdatePayload = {
       name: formName,
       year: Number(formYear),
       completedYear: Number(formCompletedYear),
@@ -182,8 +150,10 @@ const Game = ({
       await onUpdate(resolvedId, payload);
       setEditing(false);
       setMenuOpen(false);
-    } catch (err: any) {
-      setError(err?.message || "Failed to update game.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update game.";
+      setError(message);
     } finally {
       setSaving(false);
     }

@@ -4,27 +4,48 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { readListCache, writeListCache } from "@/lib/listCache";
 import { useAuth } from "@/components/authProvider";
+
+const COUNT_CACHE_KEY = "games:fullGameCount";
+const COUNT_TTL_MS = 5 * 60 * 1000;
 
 export default function Home() {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
-  const [gameCount, setGameCount] = useState<number | null>(null);
+  const [gameCount, setGameCount] = useState<number | null>(() =>
+    readListCache<number>(COUNT_CACHE_KEY)
+  );
   const mainRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
   useEffect(() => {
-    const fullGameCount = async () => {
-      const res = await fetchWithAuth(`${API_BASE_URL}/admin/fullGameCount`);
-      const data = await res.json();
-      setGameCount(data.fullGameCount);
-    };
-
-    if (user) {
-      fullGameCount();
-    } else {
+    if (!user) {
       setGameCount(null);
+      return;
     }
+    const cached = readListCache<number>(COUNT_CACHE_KEY);
+    if (cached !== null) {
+      setGameCount(cached);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchWithAuth(`${API_BASE_URL}/admin/fullGameCount`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const count = data.fullGameCount as number;
+        setGameCount(count);
+        writeListCache(COUNT_CACHE_KEY, count, COUNT_TTL_MS);
+      } catch {
+        // Silent — Home page still renders, just without the count.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const scrollToMain = () => {

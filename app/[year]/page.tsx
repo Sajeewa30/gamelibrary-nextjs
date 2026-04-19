@@ -1,90 +1,20 @@
-'use client';
-
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+"use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Game from "@/components/game";
-import { API_BASE_URL } from "@/lib/api";
 import RequireAuth from "@/components/requireAuth";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { useAuth } from "@/components/authProvider";
-
-type GameType = {
-  id?: string;
-  _id?: string;
-  gameId?: string;
-  itemId?: string;
-  name: string;
-  year: number;
-  completedYear: number;
-  isCompleted: boolean;
-  isHundredPercent: boolean;
-  isFavourite: boolean;
-  specialDescription: string;
-  imageUrl: string;
-};
+import GameGrid from "@/components/gameGrid";
+import { useGameCollection } from "@/lib/useGameCollection";
 
 const YearPage = () => {
   const params = useParams();
   const year = params?.year as string;
 
-  const [games, setGames] = useState<GameType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user, loading: authLoading } = useAuth();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const gameId = (game: GameType): string => {
-    if (game.id) return game.id.toString();
-    if (game._id) return game._id.toString();
-    if (game.gameId) return game.gameId.toString();
-    if (game.itemId) return game.itemId.toString();
-    return "";
-  };
-
-  useEffect(() => {
-    if (!year || authLoading || !user) return;
-
-    const fetchGamesByYear = async () => {
-      try {
-        const res = await fetchWithAuth(
-          `${API_BASE_URL}/admin/games/byYear/${year}`,
-          { cache: "no-store" }
-        );
-        const data: unknown = await res.json();
-        setGames(Array.isArray(data) ? (data as GameType[]) : []);
-      } catch (err) {
-        console.error("Failed to fetch games", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGamesByYear();
-  }, [year, user, authLoading]);
-
-  const handleDelete = async (id: string) => {
-    if (!id) return;
-    const previous = games;
-    setDeletingId(id);
-    setGames((prev) => prev.filter((g) => gameId(g) !== id));
-    try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to delete");
-      }
-    } catch (err) {
-      console.error("Delete failed", err);
-      alert("Failed to delete game.");
-      setGames(previous);
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const { games, loading, error, deletingId, handleDelete, handleUpdate } =
+    useGameCollection({
+      endpoint: `/admin/games/byYear/${year}`,
+      cacheKey: `games:year:${year}`,
+    });
 
   return (
     <RequireAuth>
@@ -92,9 +22,7 @@ const YearPage = () => {
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-amber-400/70">
-                Year view
-              </p>
+              <p className="text-xs uppercase tracking-[0.4em] text-amber-400/70">Year view</p>
               <h1 className="text-4xl font-semibold text-white/90">{year}</h1>
               <p className="mt-2 text-white/60">
                 All games completed or played in {year}.
@@ -110,48 +38,17 @@ const YearPage = () => {
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
             <div className="flex flex-wrap gap-6 justify-center">
-            {loading ? (
-              <p className="text-white/70 text-lg">Loading games...</p>
-            ) : games.length === 0 ? (
-              <p className="text-white/70 text-lg">
-                No games found for {year}.
-              </p>
-            ) : (
-              games.map((game) => (
-                <Game
-                  key={gameId(game) || `${game.name}-${game.year}`}
-                  game={game}
-                  showActions
-                  onDelete={handleDelete}
-                  onUpdate={async (id, payload) => {
-                    const res = await fetchWithAuth(
-                      `${API_BASE_URL}/admin/games/${id}`,
-                      {
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
-                      }
-                    );
-                    if (!res.ok) {
-                      const errText = await res.text();
-                      throw new Error(errText || "Failed to update game");
-                    }
-                    const updated =
-                      (await res.json()) as Partial<GameType> | undefined;
-                    setGames((prev) =>
-                      prev.map((g) =>
-                        gameId(g) === id ? { ...g, ...payload, ...updated } : g
-                      )
-                    );
-                  }}
-                  disableDelete={deletingId === gameId(game)}
-                />
-              ))
-            )}
+              <GameGrid
+                games={games}
+                loading={loading}
+                error={error}
+                deletingId={deletingId}
+                emptyMessage={`No games found for ${year}.`}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </RequireAuth>

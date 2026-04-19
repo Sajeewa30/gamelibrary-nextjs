@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { clearAuthTokenCache } from "@/lib/fetchWithAuth";
+import { invalidateListCache } from "@/lib/listCache";
 import { useAuth } from "@/components/authProvider";
 
 const AuthBar = () => {
@@ -11,6 +13,8 @@ const AuthBar = () => {
   const handleSignOut = async () => {
     if (!auth) return;
     await signOut(auth);
+    clearAuthTokenCache();
+    invalidateListCache("games:");
   };
 
   return (
