@@ -19,7 +19,6 @@ A personal game library tracking application built with Next.js 16 (App Router),
 app/                          # Next.js App Router pages
   (Auth)/signin|signup/       # Authentication pages
   add-game/                   # Add game form
-  discover/                   # AI-curated game browser
   game/[id]/                  # Game detail page
   Favourites/                 # Favorite games list
   FullyCompleted/             # 100% completed games
@@ -75,7 +74,7 @@ const isFavourite = game.isFavourite ?? game.favourite;
 **Base:** `NEXT_PUBLIC_API_BASE_URL` (default: `http://localhost:8080`)
 
 ### Public
-- `GET /public/ai/games?year={year}` - AI-curated games
+- `GET /health` - Cheap DB-free liveness probe used by KeepAlive
 
 ### Protected (require Bearer token)
 - `GET /admin/games/{id}` - Game details

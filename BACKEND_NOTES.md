@@ -169,8 +169,8 @@ the field names the frontend expects:
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/health` | public | Keepalive. Return 200 cheaply. |
-| GET | `/public/ai/games?year=` | public | `{ items: AiGame[] }` |
+| GET | `/health` | public | Keepalive. Return 200 cheaply. DB-free. |
+| GET | `/health/db` | public | Deeper check. Not called by keepalive. |
 | GET | `/admin/fullGameCount` | bearer | `{ fullGameCount: number }` |
 | GET | `/admin/games/{id}` | bearer | Full game detail |
 | GET | `/admin/games/byYear/{year}` | bearer | `GameType[]` |
