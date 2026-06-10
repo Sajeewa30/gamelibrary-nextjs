@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { invalidateListCache } from "@/lib/listCache";
 
 const AddGameForm = () => {
   const webUrl = API_BASE_URL;
@@ -87,6 +88,9 @@ const AddGameForm = () => {
 
       if (response.ok) {
         console.log("Game added:", parsed || raw);
+        // Clear cached counts/lists so the new game appears immediately
+        // (mirrors what delete/update already do in useGameCollection).
+        invalidateListCache("games:");
         setStatus("success");
         setStatusMessage(
           parsed?.message || "Game saved successfully."

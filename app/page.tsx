@@ -24,10 +24,11 @@ export default function Home() {
       setGameCount(null);
       return;
     }
+    // Show the cached value instantly as a placeholder, but ALWAYS revalidate
+    // against the backend so the count reflects games added/deleted since.
     const cached = readListCache<number>(COUNT_CACHE_KEY);
     if (cached !== null) {
       setGameCount(cached);
-      return;
     }
     let cancelled = false;
     (async () => {
