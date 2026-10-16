@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
-import { ApiError, fetchWithAuth } from "@/lib/fetchWithAuth";
+import { ApiError, fetchWithAuth, readErrorMessage } from "@/lib/fetchWithAuth";
 import { invalidateGameDetailCache } from "@/lib/gameDetailCache";
 import { invalidateListCache, readListCache, writeListCache } from "@/lib/listCache";
 import { resolveGameId, type GameType, type GameUpdatePayload } from "@/lib/types";
@@ -12,10 +12,12 @@ type Options = {
   endpoint: string;
   cacheKey: string;
   /**
-   * When true, games that transition to `isCompleted` are removed from the
-   * visible list (used by the backlog page).
+   * Whether a game still belongs on this list after it is updated, e.g. the
+   * backlog drops games marked completed and Favourites drops un-favourited
+   * ones. Defaults to keeping every game. Define it outside the component so
+   * its identity is stable.
    */
-  dropOnCompleted?: boolean;
+  keepWhen?: (game: GameType) => boolean;
 };
 
 export type GameCollection = {
@@ -31,7 +33,7 @@ export type GameCollection = {
 export function useGameCollection({
   endpoint,
   cacheKey,
-  dropOnCompleted = false,
+  keepWhen,
 }: Options): GameCollection {
   const { user, loading: authLoading } = useAuth();
   const [games, setGames] = useState<GameType[]>(() => readListCache<GameType[]>(cacheKey) ?? []);
@@ -75,24 +77,30 @@ export function useGameCollection({
   const handleDelete = useCallback(
     async (id: string) => {
       if (!id) return;
-      const previous = games;
+      const index = games.findIndex((g) => resolveGameId(g) === id);
+      const removed = index >= 0 ? games[index] : undefined;
       setDeletingId(id);
       setGames((prev) => prev.filter((g) => resolveGameId(g) !== id));
       try {
         const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
           method: "DELETE",
         });
-        if (!res.ok) throw new Error("Failed to delete");
+        if (!res.ok) throw new Error(await readErrorMessage(res, "Failed to delete game."));
         invalidateListCache("games:");
         invalidateGameDetailCache(id);
       } catch (err) {
         console.error("Delete failed", err);
-        alert(
-          err instanceof ApiError
-            ? err.message
-            : "Failed to delete game."
-        );
-        setGames(previous);
+        alert(err instanceof Error ? err.message : "Failed to delete game.");
+        // Put back only this game, so a concurrent delete of another game that
+        // succeeded isn't undone by restoring an older snapshot.
+        if (removed) {
+          setGames((prev) => {
+            if (prev.some((g) => resolveGameId(g) === id)) return prev;
+            const next = [...prev];
+            next.splice(Math.min(index, next.length), 0, removed);
+            return next;
+          });
+        }
       } finally {
         setDeletingId(null);
       }
@@ -108,8 +116,7 @@ export function useGameCollection({
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to update game");
+        throw new Error(await readErrorMessage(res, "Failed to update game."));
       }
       // The detail page caches its own copy; drop it so the Hero shows the update.
       invalidateGameDetailCache(id);
@@ -118,15 +125,12 @@ export function useGameCollection({
         const merged = prev.map((g) =>
           resolveGameId(g) === id ? { ...g, ...payload, ...data?.item } : g
         );
-        const next = dropOnCompleted
-          ? merged.filter((g) => !(g.isCompleted ?? g.completed))
-          : merged;
-        writeListCache(cacheKey, next);
-        return next;
+        return keepWhen ? merged.filter(keepWhen) : merged;
       });
+      // The game may have moved between lists (year, favourite, 100%, backlog).
       invalidateListCache("games:");
     },
-    [cacheKey, dropOnCompleted]
+    [keepWhen]
   );
 
   return {

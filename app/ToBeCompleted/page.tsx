@@ -4,13 +4,16 @@ import Link from "next/link";
 import RequireAuth from "@/components/requireAuth";
 import GameGrid from "@/components/gameGrid";
 import { useGameCollection } from "@/lib/useGameCollection";
+import type { GameType } from "@/lib/types";
+
+const isBacklog = (g: GameType) => !(g.isCompleted ?? g.completed);
 
 const ToBeCompleted = () => {
   const { games, loading, error, deletingId, handleDelete, handleUpdate } =
     useGameCollection({
       endpoint: "/admin/games/toBeCompleted",
       cacheKey: "games:backlog",
-      dropOnCompleted: true,
+      keepWhen: isBacklog,
     });
 
   return (

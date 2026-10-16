@@ -4,12 +4,16 @@ import Link from "next/link";
 import RequireAuth from "@/components/requireAuth";
 import GameGrid from "@/components/gameGrid";
 import { useGameCollection } from "@/lib/useGameCollection";
+import type { GameType } from "@/lib/types";
+
+const isFavourite = (g: GameType) => Boolean(g.isFavourite ?? g.favourite);
 
 const Favourites = () => {
   const { games, loading, error, deletingId, handleDelete, handleUpdate } =
     useGameCollection({
       endpoint: "/admin/getFavouriteGames",
       cacheKey: "games:favourites",
+      keepWhen: isFavourite,
     });
 
   return (

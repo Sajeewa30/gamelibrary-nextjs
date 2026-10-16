@@ -12,7 +12,11 @@ const COUNT_TTL_MS = 5 * 60 * 1000;
 
 export default function Home() {
   const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
+  const [year, setYear] = useState(String(currentYear));
+  // Only link to real year pages; an empty or out-of-range input would
+  // otherwise open "/0" or a page for year 99999.
+  const yearNum = Number(year);
+  const isValidYear = /^\d{4}$/.test(year) && yearNum >= 1975 && yearNum <= currentYear;
   const [gameCount, setGameCount] = useState<number | null>(() =>
     readListCache<number>(COUNT_CACHE_KEY)
   );
@@ -20,16 +24,10 @@ export default function Home() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) {
-      setGameCount(null);
-      return;
-    }
-    // Show the cached value instantly as a placeholder, but ALWAYS revalidate
-    // against the backend so the count reflects games added/deleted since.
-    const cached = readListCache<number>(COUNT_CACHE_KEY);
-    if (cached !== null) {
-      setGameCount(cached);
-    }
+    // Signed out: the count isn't shown, so there's nothing to load.
+    if (!user) return;
+    // The cached value (read into initial state) is only a placeholder; ALWAYS
+    // revalidate against the backend so the count reflects games added/deleted since.
     let cancelled = false;
     (async () => {
       try {
@@ -151,21 +149,32 @@ export default function Home() {
                   Explore games completed in
                 </p>
                 <div className="mt-3 flex items-center gap-3">
-                  <Link
-                    href={`/${year}`}
-                    className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/30"
-                  >
-                    Open {year}
-                  </Link>
+                  {isValidYear ? (
+                    <Link
+                      href={`/${year}`}
+                      className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/30"
+                    >
+                      Open {year}
+                    </Link>
+                  ) : (
+                    <span
+                      aria-disabled="true"
+                      className="cursor-not-allowed rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-white/40"
+                    >
+                      Enter a year
+                    </span>
+                  )}
                   <input
                     type="number"
                     id="year"
                     min="1975"
+                    max={currentYear}
+                    aria-label="Year to open"
                     className="w-24 rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-center text-white outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                     autoComplete="off"
                     value={year}
                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setYear(Number(e.target.value))
+                      setYear(e.target.value)
                     }
                   />
                 </div>

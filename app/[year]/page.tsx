@@ -1,15 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import RequireAuth from "@/components/requireAuth";
 import GameGrid from "@/components/gameGrid";
 import { useGameCollection } from "@/lib/useGameCollection";
 
+// [year] is a top-level catch-all, so any unknown path (e.g. "/favourites")
+// lands here. Only 4-digit years are real year pages; everything else is a 404.
 const YearPage = () => {
   const params = useParams();
   const year = params?.year as string;
+  if (!/^\d{4}$/.test(year ?? "")) {
+    notFound();
+  }
+  return <YearView year={year} />;
+};
 
+const YearView = ({ year }: { year: string }) => {
   const { games, loading, error, deletingId, handleDelete, handleUpdate } =
     useGameCollection({
       endpoint: `/admin/games/byYear/${year}`,

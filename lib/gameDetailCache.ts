@@ -65,3 +65,14 @@ export const invalidateGameDetailCache = (id: string) => {
     sessionStorage.removeItem(GAME_STORAGE_KEY);
   }
 };
+
+// Drop every cached game detail, e.g. on sign-out or when the user changes.
+export const clearGameDetailCache = () => {
+  gameCache.clear();
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(GAME_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors.
+  }
+};

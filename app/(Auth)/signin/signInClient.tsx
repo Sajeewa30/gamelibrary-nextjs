@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { safeRedirectPath } from "@/lib/url";
 
 export default function SignInClient() {
   const router = useRouter();
@@ -24,9 +25,9 @@ export default function SignInClient() {
       }
       await signInWithEmailAndPassword(auth, email, password);
       const next = searchParams.get("next");
-      router.push(next || "/");
-    } catch (err: any) {
-      setError(err?.message || "Failed to sign in. Please try again.");
+      router.push(safeRedirectPath(next));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to sign in. Please try again.");
     } finally {
       setLoading(false);
     }

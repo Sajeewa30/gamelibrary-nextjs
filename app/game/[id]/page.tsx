@@ -6,11 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import RequireAuth from "@/components/requireAuth";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { fetchWithAuth, readErrorMessage } from "@/lib/fetchWithAuth";
 import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/components/authProvider";
 import { readGameDetailCache, writeGameDetailCache } from "@/lib/gameDetailCache";
 import type { GameDetail } from "@/lib/types";
+import { isValidHttpUrl } from "@/lib/url";
 
 const GameDetailPage = () => {
   const params = useParams();
@@ -41,23 +42,25 @@ const GameDetailPage = () => {
   }, [game, gameIdParam]);
 
   useEffect(() => {
+    // Ignore a response that arrives after navigating to another game.
+    let cancelled = false;
     const fetchGame = async () => {
       setLoading(true);
       setError(null);
       try {
         const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${gameIdParam}`);
         if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(txt || "Failed to load game");
+          throw new Error(await readErrorMessage(res, "Failed to load game."));
         }
         const data = (await res.json()) as GameDetail;
+        writeGameDetailCache(gameIdParam, data);
+        if (cancelled) return;
         setGame(data);
         setNote(data.note ?? "");
-        writeGameDetailCache(gameIdParam, data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load game");
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load game.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -71,11 +74,35 @@ const GameDetailPage = () => {
       }
       fetchGame();
     }
+    return () => {
+      cancelled = true;
+    };
   }, [gameIdParam, user, authLoading]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Moves the lightbox to the previous (-1) or next (+1) item, wrapping around.
+  const stepLightbox = (delta: number) => {
+    const list = lightboxType === "image" ? game?.gallery ?? [] : game?.videos ?? [];
+    if (!list.length) return;
+    setLightboxIndex((prev) =>
+      prev === null ? 0 : (prev + delta + list.length) % list.length
+    );
+  };
+
+  // Keyboard support for the lightbox: Escape closes, arrows navigate.
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      else if (e.key === "ArrowLeft") stepLightbox(-1);
+      else if (e.key === "ArrowRight") stepLightbox(1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 
   const handleSaveNote = async (e: FormEvent) => {
     e.preventDefault();
@@ -88,8 +115,7 @@ const GameDetailPage = () => {
         body: JSON.stringify({ note }),
       });
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || "Failed to save note");
+        throw new Error(await readErrorMessage(res, "Failed to save note."));
       }
       setGame((prev) => {
         if (!prev) return prev;
@@ -99,8 +125,8 @@ const GameDetailPage = () => {
         }
         return updated;
       });
-    } catch (err: any) {
-      alert(err?.message || "Failed to save note");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to save note");
     } finally {
       setSavingNote(false);
     }
@@ -130,8 +156,7 @@ const GameDetailPage = () => {
         }
       );
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || "Failed to delete media");
+        throw new Error(await readErrorMessage(res, "Failed to delete media."));
       }
       const data = (await res.json()) as {
         gallery?: string[];
@@ -151,8 +176,8 @@ const GameDetailPage = () => {
       });
       setLightboxIndex(null);
       setLightboxType("image");
-    } catch (err: any) {
-      alert(err?.message || "Failed to delete media");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete media");
     } finally {
       setDeletingMedia(false);
     }
@@ -170,8 +195,7 @@ const GameDetailPage = () => {
         body: formData,
       });
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || "Failed to upload files");
+        throw new Error(await readErrorMessage(res, "Failed to upload files."));
       }
       const data = (await res.json()) as { gallery?: string[]; videos?: string[] };
       setGame((prev) => {
@@ -188,8 +212,8 @@ const GameDetailPage = () => {
       });
       setGalleryFiles([]);
       setVideoFiles([]);
-    } catch (err: any) {
-      alert(err?.message || "Upload failed");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -298,7 +322,7 @@ const GameDetailPage = () => {
                 <h2 className="text-lg font-semibold text-white">Hero</h2>
                 <div className="mt-3 grid gap-5 md:grid-cols-[minmax(220px,320px)_1fr] md:items-stretch">
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                    {game.imageUrl ? (
+                    {isValidHttpUrl(game.imageUrl) ? (
                       <div className="relative aspect-[3/4] w-full">
                         <Image
                           src={game.imageUrl}
@@ -365,23 +389,31 @@ const GameDetailPage = () => {
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {game.gallery?.length ? (
                   game.gallery.map((url, idx) => (
-                    <div
+                    <button
+                      type="button"
                       key={url}
-                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
+                      aria-label={`Open gallery image ${idx + 1}`}
+                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer transition hover:border-sky-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                       onClick={() => {
                         setLightboxType("image");
                         setLightboxIndex(idx);
                       }}
                     >
-                      <Image
-                        src={url}
-                        alt="Gallery item"
-                        width={400}
-                        height={250}
-                        className="h-[150px] w-full object-cover"
-                        unoptimized
-                      />
-                    </div>
+                      {isValidHttpUrl(url) ? (
+                        <Image
+                          src={url}
+                          alt=""
+                          width={400}
+                          height={250}
+                          className="h-[150px] w-full object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-[150px] w-full items-center justify-center text-xs text-white/50">
+                          Image unavailable
+                        </div>
+                      )}
+                    </button>
                   ))
                 ) : (
                   <p className="col-span-2 text-sm text-white/60">
@@ -422,15 +454,24 @@ const GameDetailPage = () => {
                   game.videos.map((url, idx) => (
                     <div
                       key={url}
-                      className="overflow-hidden rounded-lg border border-white/10 bg-black/30 cursor-pointer"
-                      onClick={() => {
-                        setLightboxType("video");
-                        setLightboxIndex(idx);
-                      }}
+                      className="relative overflow-hidden rounded-lg border border-white/10 bg-black/30"
                     >
+                      {/* Separate button: clicks on the player's own controls
+                          (play, seek, volume) must not open the lightbox. */}
                       <video controls className="w-full">
                         <source src={url} />
                       </video>
+                      <button
+                        type="button"
+                        aria-label={`Expand video ${idx + 1}`}
+                        onClick={() => {
+                          setLightboxType("video");
+                          setLightboxIndex(idx);
+                        }}
+                        className="absolute right-2 top-2 rounded-full border border-white/30 bg-black/60 px-3 py-1 text-xs font-semibold text-white transition hover:border-white/60 hover:bg-white/20"
+                      >
+                        Expand
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -464,34 +505,29 @@ const GameDetailPage = () => {
       {mounted && lightboxIndex !== null && (
         createPortal(
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={lightboxType === "image" ? "Gallery image" : "Video"}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
             onClick={() => setLightboxIndex(null)}
           >
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                const list =
-                  lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
-                if (!list.length) return;
-                setLightboxIndex((prev) =>
-                  prev === null
-                    ? 0
-                    : prev === 0
-                    ? list.length - 1
-                    : prev - 1
-                );
+                stepLightbox(-1);
               }}
+              aria-label="Previous"
               className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
             >
-              ‹
+              <span aria-hidden="true">‹</span>
             </button>
             <div
               className="max-h-[85vh] max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl shadow-black/60"
               onClick={(e) => e.stopPropagation()}
             >
-              {lightboxType === "image" && game.gallery?.length ? (
+              {lightboxType === "image" && isValidHttpUrl(game.gallery?.[lightboxIndex]) ? (
                 <Image
-                  src={game.gallery[lightboxIndex]}
+                  src={game.gallery![lightboxIndex]}
                   alt="Gallery item"
                   width={1400}
                   height={900}
@@ -512,20 +548,12 @@ const GameDetailPage = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                const list =
-                  lightboxType === "image" ? game.gallery ?? [] : game.videos ?? [];
-                if (!list.length) return;
-                setLightboxIndex((prev) =>
-                  prev === null
-                    ? 0
-                    : prev === list.length - 1
-                    ? 0
-                    : prev + 1
-                );
+                stepLightbox(1);
               }}
+              aria-label="Next"
               className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
             >
-              ›
+              <span aria-hidden="true">›</span>
             </button>
             <div className="absolute right-6 top-6 flex items-center gap-2">
               <button
@@ -543,9 +571,10 @@ const GameDetailPage = () => {
                   e.stopPropagation();
                   setLightboxIndex(null);
                 }}
+                aria-label="Close"
                 className="rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white transition hover:border-white/60 hover:bg-white/20"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
           </div>,

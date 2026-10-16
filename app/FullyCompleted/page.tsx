@@ -4,12 +4,16 @@ import Link from "next/link";
 import RequireAuth from "@/components/requireAuth";
 import GameGrid from "@/components/gameGrid";
 import { useGameCollection } from "@/lib/useGameCollection";
+import type { GameType } from "@/lib/types";
+
+const isHundredPercent = (g: GameType) => Boolean(g.isHundredPercent ?? g.hundredPercent);
 
 const FullyCompleted = () => {
   const { games, loading, error, deletingId, handleDelete, handleUpdate } =
     useGameCollection({
       endpoint: "/admin/getHundredPercentCompletedGames",
       cacheKey: "games:hundredPercent",
+      keepWhen: isHundredPercent,
     });
 
   return (

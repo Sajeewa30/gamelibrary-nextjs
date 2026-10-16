@@ -97,3 +97,19 @@ export async function fetchWithAuth(
   inFlightGets.set(dedupeKey, promise);
   return promise.then((r) => r.clone());
 }
+
+/**
+ * Reads a user-facing error message from a failed response. The backend replies
+ * with `{"message": "..."}`; fall back to the raw text, then to `fallback`.
+ */
+export async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+  const text = await res.text().catch(() => "");
+  if (!text) return fallback;
+  try {
+    const parsed = JSON.parse(text) as { message?: unknown };
+    if (typeof parsed?.message === "string" && parsed.message) return parsed.message;
+  } catch {
+    // Not JSON — use the text as-is.
+  }
+  return text;
+}

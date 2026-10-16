@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { clearAuthTokenCache } from "@/lib/fetchWithAuth";
+import { clearGameDetailCache } from "@/lib/gameDetailCache";
 import { invalidateListCache } from "@/lib/listCache";
 import { useAuth } from "@/components/authProvider";
 
@@ -15,6 +16,7 @@ const AuthBar = () => {
     await signOut(auth);
     clearAuthTokenCache();
     invalidateListCache("games:");
+    clearGameDetailCache();
   };
 
   return (

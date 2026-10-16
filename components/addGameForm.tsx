@@ -2,13 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import { API_BASE_URL } from "@/lib/api";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { fetchWithAuth, readErrorMessage } from "@/lib/fetchWithAuth";
 import { invalidateListCache } from "@/lib/listCache";
+import { discardUploadedImage, uploadCoverImage } from "@/lib/uploads";
 
 const AddGameForm = () => {
-  const webUrl = API_BASE_URL;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
+  const maxYear = currentYear + 5;
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<"success" | "error" | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -29,34 +30,19 @@ const AddGameForm = () => {
     const imageFile = formData.get("image") as File | null;
 
     if (imageFile && imageFile.size > 0) {
-      const uploadData = new FormData();
-      uploadData.append("image", imageFile);
-
       try {
-        const res = await fetchWithAuth(`${webUrl}/admin/uploadImage`, {
-          method: "POST",
-          body: uploadData,
-        });
-
-        if (res.ok) {
-          imageUrl = await res.text();
-        } else {
-          setStatus("error");
-          setStatusMessage("Image upload failed.");
-          setSubmitting(false);
-          return;
-        }
+        imageUrl = await uploadCoverImage(imageFile);
       } catch (error) {
         console.error("Upload error:", error);
         setStatus("error");
-        setStatusMessage("Image upload failed.");
+        setStatusMessage(error instanceof Error ? error.message : "Image upload failed.");
         setSubmitting(false);
         return;
       }
     }
 
     const payload = {
-      name: String(formData.get("name") ?? ""),
+      name: String(formData.get("name") ?? "").trim(),
       year: Number(formData.get("year") ?? 0),
       completedYear: Number(formData.get("completedYear") ?? 0),
       isCompleted: formData.get("isCompleted") === "on",
@@ -69,8 +55,9 @@ const AddGameForm = () => {
       imageUrl,
     };
 
+    let saved = false;
     try {
-      const response = await fetchWithAuth(`${webUrl}/admin/addGameItem`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/admin/addGameItem`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,35 +65,28 @@ const AddGameForm = () => {
         body: JSON.stringify(payload),
       });
 
-      const raw = await response.text();
-      let parsed: any = null;
-      try {
-        parsed = raw ? JSON.parse(raw) : null;
-      } catch {
-        parsed = null;
-      }
-
       if (response.ok) {
-        console.log("Game added:", parsed || raw);
+        saved = true;
+        const parsed = (await response.json().catch(() => null)) as { message?: string } | null;
         // Clear cached counts/lists so the new game appears immediately
         // (mirrors what delete/update already do in useGameCollection).
         invalidateListCache("games:");
         setStatus("success");
-        setStatusMessage(
-          parsed?.message || "Game saved successfully."
-        );
+        setStatusMessage(parsed?.message || "Game saved successfully.");
         formElement.reset();
       } else {
         setStatus("error");
-        setStatusMessage(
-          parsed?.message || "Game was not saved."
-        );
+        setStatusMessage(await readErrorMessage(response, "Game was not saved."));
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Save error:", error);
       setStatus("error");
-      setStatusMessage(error?.message || "Game was not saved.");
+      setStatusMessage(error instanceof Error ? error.message : "Game was not saved.");
     } finally {
+      // The game wasn't created, so the cover uploaded for it is unused.
+      if (!saved && imageUrl) {
+        void discardUploadedImage(imageUrl);
+      }
       setSubmitting(false);
     }
   };
@@ -145,6 +125,7 @@ const AddGameForm = () => {
             required
             defaultValue={currentYear}
             min={1975}
+            max={maxYear}
           />
         </label>
 
@@ -159,6 +140,7 @@ const AddGameForm = () => {
             defaultValue={currentYear}
             required
             min={1975}
+            max={maxYear}
           />
         </label>
 

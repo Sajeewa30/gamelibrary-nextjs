@@ -13,6 +13,15 @@ type Props = {
   onUpdate: (id: string, payload: GameUpdatePayload) => Promise<void>;
 };
 
+const ErrorBanner = ({ message }: { message: string }) => (
+  <div
+    role="alert"
+    className="w-full rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+  >
+    {message}
+  </div>
+);
+
 const GameGrid = ({
   games,
   loading,
@@ -22,12 +31,9 @@ const GameGrid = ({
   onDelete,
   onUpdate,
 }: Props) => {
-  if (error) {
-    return (
-      <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-        {error}
-      </div>
-    );
+  // Nothing cached to fall back on: the error is all there is to show.
+  if (error && games.length === 0) {
+    return <ErrorBanner message={error} />;
   }
   if (loading && games.length === 0) {
     return <p className="text-white/70 text-lg">Loading games...</p>;
@@ -37,6 +43,8 @@ const GameGrid = ({
   }
   return (
     <>
+      {/* A failed background refresh keeps the cached games visible. */}
+      {error && <ErrorBanner message={`Couldn't refresh, showing saved results. ${error}`} />}
       {games.map((game) => (
         <Game
           key={resolveGameId(game) || `${game.name}-${game.year}`}
