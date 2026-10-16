@@ -267,12 +267,6 @@ const Game = ({
             No image available
           </div>
         )}
-
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition duration-500 group-hover:opacity-100">
-          <div className="px-4 text-center text-sm text-white/90">
-            {game.specialDescription || "No description provided"}
-          </div>
-        </div>
       </div>
       <div className="flex items-center justify-between px-4 py-3 text-white">
         <div className="flex flex-col">
