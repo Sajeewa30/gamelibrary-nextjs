@@ -1,7 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -28,5 +27,4 @@ function createFirebaseApp(): FirebaseApp | null {
 const app = createFirebaseApp();
 
 export const auth: Auth | null = app ? getAuth(app) : null;
-export const storage: FirebaseStorage | null = app ? getStorage(app) : null;
 // Analytics removed on server to avoid window reference; add back client-only if needed.

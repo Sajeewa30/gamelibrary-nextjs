@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A personal game library tracking application built with Next.js 16 (App Router), React 19, TypeScript 5, and Tailwind CSS 4. Users can track completed games, organize them by year, mark favorites, and discover new games via AI curation.
+A personal game library tracking application built with Next.js 16 (App Router), React 19, TypeScript 5, and Tailwind CSS 4. Users can track completed games, organize them by year, mark favorites and 100% completions, and keep a backlog.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ A personal game library tracking application built with Next.js 16 (App Router),
 - **Language:** TypeScript 5 (strict mode)
 - **UI:** React 19 + Tailwind CSS 4
 - **Auth:** Firebase Authentication (email/password)
-- **Storage:** Firebase Storage + AWS S3 (eu-north-1)
+- **Storage:** Uploaded images and videos are stored by the backend on local disk and served from `/uploads`
 - **Backend:** External REST API (configurable via `NEXT_PUBLIC_API_BASE_URL`)
 
 ## Directory Structure
@@ -25,7 +25,7 @@ app/                          # Next.js App Router pages
   ToBeCompleted/              # Backlog games
   [year]/                     # Games by completion year
 components/                   # Reusable React components
-lib/                          # Utilities (firebase, api, fetchWithAuth)
+lib/                          # Utilities (firebase, api, fetchWithAuth, caches)
 ```
 
 ## Key Patterns & Conventions
