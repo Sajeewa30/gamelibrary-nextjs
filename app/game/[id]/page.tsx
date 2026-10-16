@@ -9,63 +9,8 @@ import RequireAuth from "@/components/requireAuth";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/components/authProvider";
-
-type GameDetail = {
-  id?: string;
-  _id?: string;
-  gameId?: string;
-  itemId?: string;
-  name: string;
-  year: number;
-  completedYear: number;
-  isCompleted: boolean;
-  isHundredPercent: boolean;
-  isFavourite: boolean;
-  specialDescription: string;
-  imageUrl: string;
-  note?: string;
-  gallery?: string[];
-  videos?: string[];
-};
-
-const GAME_CACHE_TTL_MS = 2 * 60 * 1000;
-const GAME_STORAGE_TTL_MS = 10 * 60 * 1000;
-const GAME_STORAGE_KEY = "game-detail-cache-v1";
-const gameCache = new Map<string, { data: GameDetail; expiresAt: number }>();
-
-const readStorageCache = (id: string): GameDetail | null => {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(GAME_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as {
-      id: string;
-      data: GameDetail;
-      expiresAt: number;
-    };
-    if (parsed.id !== id) return null;
-    if (parsed.expiresAt < Date.now()) return null;
-    return parsed.data;
-  } catch {
-    return null;
-  }
-};
-
-const writeStorageCache = (id: string, data: GameDetail) => {
-  if (typeof window === "undefined") return;
-  try {
-    sessionStorage.setItem(
-      GAME_STORAGE_KEY,
-      JSON.stringify({
-        id,
-        data,
-        expiresAt: Date.now() + GAME_STORAGE_TTL_MS,
-      })
-    );
-  } catch {
-    // Ignore storage errors.
-  }
-};
+import { readGameDetailCache, writeGameDetailCache } from "@/lib/gameDetailCache";
+import type { GameDetail } from "@/lib/types";
 
 const GameDetailPage = () => {
   const params = useParams();
@@ -108,11 +53,7 @@ const GameDetailPage = () => {
         const data = (await res.json()) as GameDetail;
         setGame(data);
         setNote(data.note ?? "");
-        gameCache.set(gameIdParam, {
-          data,
-          expiresAt: Date.now() + GAME_CACHE_TTL_MS,
-        });
-        writeStorageCache(gameIdParam, data);
+        writeGameDetailCache(gameIdParam, data);
       } catch (err: any) {
         setError(err?.message || "Failed to load game");
       } finally {
@@ -121,18 +62,10 @@ const GameDetailPage = () => {
     };
 
     if (gameIdParam && user && !authLoading) {
-      const cached = gameCache.get(gameIdParam);
-      if (cached && cached.expiresAt > Date.now()) {
-        setGame(cached.data);
-        setNote(cached.data.note ?? "");
-        setLoading(false);
-        return;
-      }
-
-      const stored = readStorageCache(gameIdParam);
-      if (stored) {
-        setGame(stored);
-        setNote(stored.note ?? "");
+      const cached = readGameDetailCache(gameIdParam);
+      if (cached) {
+        setGame(cached);
+        setNote(cached.note ?? "");
         setLoading(false);
         return;
       }
@@ -162,11 +95,7 @@ const GameDetailPage = () => {
         if (!prev) return prev;
         const updated = { ...prev, note };
         if (resolvedId) {
-          gameCache.set(resolvedId, {
-            data: updated,
-            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
-          });
-          writeStorageCache(resolvedId, updated);
+          writeGameDetailCache(resolvedId, updated);
         }
         return updated;
       });
@@ -216,11 +145,7 @@ const GameDetailPage = () => {
           videos: data.videos ?? prev.videos ?? [],
         };
         if (resolvedId) {
-          gameCache.set(resolvedId, {
-            data: updated,
-            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
-          });
-          writeStorageCache(resolvedId, updated);
+          writeGameDetailCache(resolvedId, updated);
         }
         return updated;
       });
@@ -257,11 +182,7 @@ const GameDetailPage = () => {
           videos: data.videos ?? prev.videos ?? [],
         };
         if (resolvedId) {
-          gameCache.set(resolvedId, {
-            data: updated,
-            expiresAt: Date.now() + GAME_CACHE_TTL_MS,
-          });
-          writeStorageCache(resolvedId, updated);
+          writeGameDetailCache(resolvedId, updated);
         }
         return updated;
       });

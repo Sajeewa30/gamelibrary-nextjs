@@ -16,6 +16,24 @@ export type GameType = {
   imageUrl: string;
 };
 
+export type GameDetail = {
+  id?: string;
+  _id?: string;
+  gameId?: string;
+  itemId?: string;
+  name: string;
+  year: number;
+  completedYear: number;
+  isCompleted: boolean;
+  isHundredPercent: boolean;
+  isFavourite: boolean;
+  specialDescription: string;
+  imageUrl: string;
+  note?: string;
+  gallery?: string[];
+  videos?: string[];
+};
+
 export type GameUpdatePayload = {
   name: string;
   year: number;

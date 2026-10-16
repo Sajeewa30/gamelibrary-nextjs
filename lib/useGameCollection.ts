@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import { ApiError, fetchWithAuth } from "@/lib/fetchWithAuth";
+import { invalidateGameDetailCache } from "@/lib/gameDetailCache";
 import { invalidateListCache, readListCache, writeListCache } from "@/lib/listCache";
 import { resolveGameId, type GameType, type GameUpdatePayload } from "@/lib/types";
 import { useAuth } from "@/components/authProvider";
@@ -83,6 +84,7 @@ export function useGameCollection({
         });
         if (!res.ok) throw new Error("Failed to delete");
         invalidateListCache("games:");
+        invalidateGameDetailCache(id);
       } catch (err) {
         console.error("Delete failed", err);
         alert(
@@ -109,10 +111,12 @@ export function useGameCollection({
         const errText = await res.text();
         throw new Error(errText || "Failed to update game");
       }
-      const updated = (await res.json()) as Partial<GameType> | undefined;
+      // The detail page caches its own copy; drop it so the Hero shows the update.
+      invalidateGameDetailCache(id);
+      const data = (await res.json()) as { item?: Partial<GameType> } | undefined;
       setGames((prev) => {
         const merged = prev.map((g) =>
-          resolveGameId(g) === id ? { ...g, ...payload, ...updated } : g
+          resolveGameId(g) === id ? { ...g, ...payload, ...data?.item } : g
         );
         const next = dropOnCompleted
           ? merged.filter((g) => !(g.isCompleted ?? g.completed))
