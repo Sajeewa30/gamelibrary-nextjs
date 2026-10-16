@@ -1,10 +1,9 @@
 'use client';
-import { useEffect, useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
-import { createPortal } from "react-dom";
 import Link from "next/link";
+import GameEditDialog from "@/components/gameEditDialog";
 import { resolveGameId, type GameType, type GameUpdatePayload } from "@/lib/types";
-import { discardUploadedImage, uploadCoverImage } from "@/lib/uploads";
 import { isValidHttpUrl } from "@/lib/url";
 
 type GameProps = {
@@ -16,28 +15,6 @@ type GameProps = {
   clickable?: boolean;
 };
 
-const MIN_YEAR = 1950;
-const MAX_YEAR_AHEAD = 5;
-
-// Returns an error message for the Update form, or null when it's valid.
-function validateGameForm(name: string, year: string, completedYear: string): string | null {
-  const maxYear = new Date().getFullYear() + MAX_YEAR_AHEAD;
-  if (!name.trim()) return "Name is required.";
-  const yearNum = Number(year);
-  if (!year.trim() || !Number.isInteger(yearNum) || yearNum < MIN_YEAR || yearNum > maxYear) {
-    return `Year must be a whole number between ${MIN_YEAR} and ${maxYear}.`;
-  }
-  // Empty / 0 means "not completed yet".
-  const completedNum = Number(completedYear || 0);
-  if (
-    !Number.isInteger(completedNum) ||
-    (completedNum !== 0 && (completedNum < MIN_YEAR || completedNum > maxYear))
-  ) {
-    return `Completed year must be empty or between ${MIN_YEAR} and ${maxYear}.`;
-  }
-  return null;
-}
-
 const Game = ({
   game,
   showActions = false,
@@ -47,67 +24,11 @@ const Game = ({
   clickable = true,
 }: GameProps) => {
   const resolvedId = useMemo(() => resolveGameId(game), [game]);
-  const dialogTitleId = useId();
 
   const hasValidImage = isValidHttpUrl(game.imageUrl);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [formName, setFormName] = useState(game.name);
-  const [formYear, setFormYear] = useState(game.year.toString());
-  const [formCompletedYear, setFormCompletedYear] = useState(
-    game.completedYear.toString()
-  );
-  const [formIsCompleted, setFormIsCompleted] = useState(
-    game.isCompleted ?? game.completed ?? false
-  );
-  const [formIsHundredPercent, setFormIsHundredPercent] = useState(
-    game.isHundredPercent ?? game.hundredPercent ?? false
-  );
-  const [formIsFavourite, setFormIsFavourite] = useState(
-    game.isFavourite ?? game.favourite ?? false
-  );
-  const [formDescription, setFormDescription] = useState(
-    game.specialDescription
-  );
-  const [formImageUrl, setFormImageUrl] = useState(game.imageUrl);
-  const [newImageFile, setNewImageFile] = useState<File | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setFormName(game.name);
-    setFormYear(game.year.toString());
-    setFormCompletedYear(game.completedYear.toString());
-    setFormIsCompleted(game.isCompleted ?? game.completed ?? false);
-    setFormIsHundredPercent(
-      game.isHundredPercent ?? game.hundredPercent ?? false
-    );
-    setFormIsFavourite(game.isFavourite ?? game.favourite ?? false);
-    setFormDescription(game.specialDescription);
-    setFormImageUrl(game.imageUrl);
-    setNewImageFile(null);
-    setError(null);
-    setEditing(false);
-    setMenuOpen(false);
-    setConfirmOpen(false);
-  }, [game]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Escape closes the Update dialog (unless a save is in flight).
-  useEffect(() => {
-    if (!editing) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !saving) setEditing(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [editing, saving]);
 
   const handleDeleteClick = () => {
     if (!resolvedId || !onDelete) return;
@@ -122,58 +43,6 @@ const Game = ({
   };
 
   const handleCancel = () => setConfirmOpen(false);
-
-  const handleUpdate = async () => {
-    if (!resolvedId || !onUpdate) return;
-    const validationError = validateGameForm(formName, formYear, formCompletedYear);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setSaving(true);
-    setError(null);
-
-    let imageUrl = formImageUrl;
-    let uploadedUrl: string | null = null;
-    if (newImageFile && newImageFile.size > 0) {
-      try {
-        uploadedUrl = await uploadCoverImage(newImageFile);
-        imageUrl = uploadedUrl;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Image upload failed.");
-        setSaving(false);
-        return;
-      }
-    }
-
-    const payload: GameUpdatePayload = {
-      name: formName.trim(),
-      year: Number(formYear),
-      completedYear: Number(formCompletedYear || 0),
-      isCompleted: formIsCompleted,
-      isHundredPercent: formIsHundredPercent,
-      isFavourite: formIsFavourite,
-      completed: formIsCompleted,
-      hundredPercent: formIsHundredPercent,
-      favourite: formIsFavourite,
-      specialDescription: formDescription,
-      imageUrl,
-    };
-
-    try {
-      await onUpdate(resolvedId, payload);
-      setEditing(false);
-      setMenuOpen(false);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to update game.";
-      setError(message);
-      // The game still points at its old cover, so the new upload is unused.
-      if (uploadedUrl) void discardUploadedImage(uploadedUrl);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <div className="group relative w-[280px] overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg shadow-black/30 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/10">
@@ -278,152 +147,13 @@ const Game = ({
         </span>
       </div>
 
-      {mounted &&
-        editing &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
-            onClick={() => !saving && setEditing(false)}
-          >
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={dialogTitleId}
-              className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0c1224] p-5 text-sm text-white shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto md:w-1/2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
-                <h3 id={dialogTitleId} className="text-lg font-semibold">Update game</h3>
-                <button
-                  onClick={() => setEditing(false)}
-                  aria-label="Close"
-                  className="rounded-lg px-2 py-1 text-white/60 transition hover:bg-white/10"
-                  disabled={saving}
-                >
-                  <span aria-hidden="true">✕</span>
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <label className="flex flex-col gap-1">
-                  <span className="text-white/70">Name</span>
-                  <input
-                    autoFocus
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
-                  />
-                </label>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <label className="flex flex-col gap-1">
-                    <span className="text-white/70">Year</span>
-                    <input
-                      type="number"
-                      value={formYear}
-                      onChange={(e) => setFormYear(e.target.value)}
-                      className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1">
-                    <span className="text-white/70">Completed year</span>
-                    <input
-                      type="number"
-                      value={formCompletedYear}
-                      onChange={(e) => setFormCompletedYear(e.target.value)}
-                      className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
-                    />
-                  </label>
-                </div>
-                <label className="flex flex-col gap-1">
-                  <span className="text-white/70">Special description</span>
-                  <input
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
-                  />
-                </label>
-
-                <div className="flex flex-wrap gap-3">
-                  <label className="flex items-center gap-2 text-white/80">
-                    <input
-                      type="checkbox"
-                      checked={formIsCompleted}
-                      onChange={(e) => setFormIsCompleted(e.target.checked)}
-                      className="h-5 w-5 rounded border-white/20 bg-black/50 text-sky-400 focus:ring-sky-400/60"
-                    />
-                    Completed
-                  </label>
-                  <label className="flex items-center gap-2 text-white/80">
-                    <input
-                      type="checkbox"
-                      checked={formIsHundredPercent}
-                      onChange={(e) =>
-                        setFormIsHundredPercent(e.target.checked)
-                      }
-                      className="h-5 w-5 rounded border-white/20 bg-black/50 text-emerald-400 focus:ring-emerald-400/60"
-                    />
-                    100% Completed
-                  </label>
-                  <label className="flex items-center gap-2 text-white/80">
-                    <input
-                      type="checkbox"
-                      checked={formIsFavourite}
-                      onChange={(e) => setFormIsFavourite(e.target.checked)}
-                      className="h-5 w-5 rounded border-white/20 bg-black/50 text-fuchsia-400 focus:ring-fuchsia-400/60"
-                    />
-                    Favourite
-                  </label>
-                </div>
-
-                <label className="flex flex-col gap-1 text-white/70">
-                  Image
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setNewImageFile(e.target.files?.[0] ?? null)
-                    }
-                    className="rounded-lg border border-dashed border-white/15 bg-black/30 px-3 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-sky-500/20 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sky-100 hover:border-sky-400/40"
-                  />
-                  {formImageUrl && !newImageFile && (
-                    <span className="text-xs text-white/50 truncate">
-                      Current: {formImageUrl}
-                    </span>
-                  )}
-                  {newImageFile && (
-                    <span className="text-xs text-white/70">
-                      New file: {newImageFile.name}
-                    </span>
-                  )}
-                </label>
-
-                {error && (
-                  <div className="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-xs text-red-100">
-                    {error}
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    onClick={() => setEditing(false)}
-                    disabled={saving}
-                    className="rounded-lg border border-white/20 px-4 py-2 text-white/80 transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleUpdate}
-                    disabled={saving}
-                    className="rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 px-4 py-2 font-semibold text-white shadow-md shadow-sky-900/40 transition hover:shadow-lg hover:shadow-indigo-900/40 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {saving ? "Saving..." : "Save changes"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      {editing && resolvedId && onUpdate && (
+        <GameEditDialog
+          game={game}
+          onClose={() => setEditing(false)}
+          onSave={(payload) => onUpdate(resolvedId, payload)}
+        />
+      )}
     </div>
   );
 };

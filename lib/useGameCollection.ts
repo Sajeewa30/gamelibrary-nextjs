@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
-import { ApiError, fetchWithAuth, readErrorMessage } from "@/lib/fetchWithAuth";
-import { invalidateGameDetailCache } from "@/lib/gameDetailCache";
-import { invalidateListCache, readListCache, writeListCache } from "@/lib/listCache";
+import { ApiError, fetchWithAuth } from "@/lib/fetchWithAuth";
+import { deleteGame, updateGame } from "@/lib/gameApi";
+import { readListCache, writeListCache } from "@/lib/listCache";
 import { resolveGameId, type GameType, type GameUpdatePayload } from "@/lib/types";
 import { useAuth } from "@/components/authProvider";
 
@@ -82,12 +82,7 @@ export function useGameCollection({
       setDeletingId(id);
       setGames((prev) => prev.filter((g) => resolveGameId(g) !== id));
       try {
-        const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) throw new Error(await readErrorMessage(res, "Failed to delete game."));
-        invalidateListCache("games:");
-        invalidateGameDetailCache(id);
+        await deleteGame(id);
       } catch (err) {
         console.error("Delete failed", err);
         alert(err instanceof Error ? err.message : "Failed to delete game.");
@@ -110,25 +105,13 @@ export function useGameCollection({
 
   const handleUpdate = useCallback(
     async (id: string, payload: GameUpdatePayload) => {
-      const res = await fetchWithAuth(`${API_BASE_URL}/admin/games/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        throw new Error(await readErrorMessage(res, "Failed to update game."));
-      }
-      // The detail page caches its own copy; drop it so the Hero shows the update.
-      invalidateGameDetailCache(id);
-      const data = (await res.json()) as { item?: Partial<GameType> } | undefined;
+      const item = await updateGame(id, payload);
       setGames((prev) => {
         const merged = prev.map((g) =>
-          resolveGameId(g) === id ? { ...g, ...payload, ...data?.item } : g
+          resolveGameId(g) === id ? { ...g, ...payload, ...item } : g
         );
         return keepWhen ? merged.filter(keepWhen) : merged;
       });
-      // The game may have moved between lists (year, favourite, 100%, backlog).
-      invalidateListCache("games:");
     },
     [keepWhen]
   );

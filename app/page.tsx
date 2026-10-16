@@ -1,14 +1,9 @@
 'use client'
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { API_BASE_URL } from "@/lib/api";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { readListCache, writeListCache } from "@/lib/listCache";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/components/authProvider";
-
-const COUNT_CACHE_KEY = "games:fullGameCount";
-const COUNT_TTL_MS = 5 * 60 * 1000;
+import { useStats } from "@/lib/useStats";
 
 export default function Home() {
   const currentYear = new Date().getFullYear();
@@ -17,35 +12,18 @@ export default function Home() {
   // otherwise open "/0" or a page for year 99999.
   const yearNum = Number(year);
   const isValidYear = /^\d{4}$/.test(year) && yearNum >= 1975 && yearNum <= currentYear;
-  const [gameCount, setGameCount] = useState<number | null>(() =>
-    readListCache<number>(COUNT_CACHE_KEY)
-  );
   const mainRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { stats } = useStats();
 
-  useEffect(() => {
-    // Signed out: the count isn't shown, so there's nothing to load.
-    if (!user) return;
-    // The cached value (read into initial state) is only a placeholder; ALWAYS
-    // revalidate against the backend so the count reflects games added/deleted since.
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetchWithAuth(`${API_BASE_URL}/admin/fullGameCount`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled) return;
-        const count = data.fullGameCount as number;
-        setGameCount(count);
-        writeListCache(COUNT_CACHE_KEY, count, COUNT_TTL_MS);
-      } catch {
-        // Silent — Home page still renders, just without the count.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
+  // Years that actually have completed games, newest first. When known, the
+  // year box becomes a picker of just those years.
+  const years = stats?.byYear ?? [];
+  const pickedYear = years.some((y) => String(y.year) === year)
+    ? year
+    : years.length
+    ? String(years[0].year)
+    : year;
 
   const scrollToMain = () => {
     mainRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -148,6 +126,28 @@ export default function Home() {
                 <p className="text-lg font-semibold text-white">
                   Explore games completed in
                 </p>
+                {years.length ? (
+                <div className="mt-3 flex items-center gap-3">
+                  <Link
+                    href={`/${pickedYear}`}
+                    className="rounded-lg bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/30"
+                  >
+                    Open {pickedYear}
+                  </Link>
+                  <select
+                    aria-label="Year to open"
+                    value={pickedYear}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setYear(e.target.value)}
+                    className="rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-white outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+                  >
+                    {years.map(({ year: y, count }) => (
+                      <option key={y} value={y} className="bg-[#0c1224]">
+                        {y} ({count} {count === 1 ? "game" : "games"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                ) : (
                 <div className="mt-3 flex items-center gap-3">
                   {isValidYear ? (
                     <Link
@@ -178,6 +178,7 @@ export default function Home() {
                     }
                   />
                 </div>
+                )}
               </div>
             </div>
           </div>
@@ -203,12 +204,18 @@ export default function Home() {
         </div>
 
         <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-between">
-          <div className="w-full rounded-2xl border border-white/5 bg-white/5 px-6 py-4 text-center backdrop-blur-xl">
+          <Link
+            href="/stats"
+            className="group w-full rounded-2xl border border-white/5 bg-white/5 px-6 py-4 text-center backdrop-blur-xl transition hover:border-sky-400/40 hover:bg-white/10"
+          >
             <p className="text-sm text-white/60">Total games tracked</p>
             <p className="text-2xl font-semibold text-white">
-              {user ? gameCount ?? "—" : "Sign in to load"}
+              {user ? stats?.total ?? "—" : "Sign in to load"}
             </p>
-          </div>
+            <p className="mt-1 text-xs font-semibold text-sky-300/80 transition group-hover:text-sky-200">
+              View stats →
+            </p>
+          </Link>
 
           <Link
             href="/add-game"

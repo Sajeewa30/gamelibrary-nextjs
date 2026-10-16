@@ -6,11 +6,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import RequireAuth from "@/components/requireAuth";
+import GameEditDialog from "@/components/gameEditDialog";
 import { fetchWithAuth, readErrorMessage } from "@/lib/fetchWithAuth";
 import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/components/authProvider";
+import { deleteGame, updateGame } from "@/lib/gameApi";
 import { readGameDetailCache, writeGameDetailCache } from "@/lib/gameDetailCache";
-import type { GameDetail } from "@/lib/types";
+import type { GameDetail, GameUpdatePayload } from "@/lib/types";
 import { isValidHttpUrl } from "@/lib/url";
 
 const GameDetailPage = () => {
@@ -31,6 +33,8 @@ const GameDetailPage = () => {
   const [lightboxType, setLightboxType] = useState<"image" | "video">("image");
   const [deletingMedia, setDeletingMedia] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [deletingGame, setDeletingGame] = useState(false);
 
   const resolvedId = useMemo(() => {
     if (!game) return gameIdParam;
@@ -103,6 +107,33 @@ const GameDetailPage = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
+
+  const handleSaveGame = async (payload: GameUpdatePayload) => {
+    if (!resolvedId) return;
+    const item = await updateGame(resolvedId, payload);
+    setGame((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...payload, ...item };
+      writeGameDetailCache(resolvedId, updated);
+      return updated;
+    });
+  };
+
+  const handleDeleteGame = async () => {
+    if (!resolvedId) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to erase all your data for this game permanently?"
+    );
+    if (!confirmed) return;
+    setDeletingGame(true);
+    try {
+      await deleteGame(resolvedId);
+      router.push("/");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete game.");
+      setDeletingGame(false);
+    }
+  };
 
   const handleSaveNote = async (e: FormEvent) => {
     e.preventDefault();
@@ -308,13 +339,35 @@ const GameDetailPage = () => {
                 {isHundredPercent ? "100%" : "Not 100%"}
               </p>
             </div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-sky-400/50 hover:bg-white/10"
-            >
-              ← Back home
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setEditing(true)}
+                className="rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-900/40 transition hover:shadow-lg hover:shadow-indigo-900/40"
+              >
+                Update
+              </button>
+              <button
+                onClick={handleDeleteGame}
+                disabled={deletingGame}
+                className="rounded-xl border border-red-400/50 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deletingGame ? "Deleting..." : "Delete"}
+              </button>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-sky-400/50 hover:bg-white/10"
+              >
+                ← Back home
+              </Link>
+            </div>
           </div>
+          {editing && (
+            <GameEditDialog
+              game={game}
+              onClose={() => setEditing(false)}
+              onSave={handleSaveGame}
+            />
+          )}
 
           <div className="grid gap-6 md:grid-cols-3">
             <div className="md:col-span-2">
