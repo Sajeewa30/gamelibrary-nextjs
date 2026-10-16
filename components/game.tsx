@@ -235,7 +235,7 @@ const Game = ({
       )}
       <div className="relative h-[360px] w-full overflow-hidden">
         {clickable ? (
-          <Link href={`/game/${resolvedId || ""}`} className="block h-full w-full">
+          <Link href={`/game/${resolvedId || ""}`} className="relative block h-full w-full">
             {hasValidImage ? (
               <Image
                 src={game.imageUrl}
