@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import RequireAuth from "@/components/requireAuth";
+import DriveBackupCard from "@/components/driveBackupCard";
 import { useStats } from "@/lib/useStats";
 
 const StatTile = ({
@@ -100,6 +101,8 @@ const StatsPage = () => {
               </ul>
             )}
           </div>
+
+          <DriveBackupCard />
         </div>
       </div>
     </RequireAuth>

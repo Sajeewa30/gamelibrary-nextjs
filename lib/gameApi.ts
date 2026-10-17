@@ -55,3 +55,35 @@ export async function fetchStats(): Promise<GameStats> {
   }
   return (await res.json()) as GameStats;
 }
+
+export type BackupStatus = {
+  state: "never" | "running" | "success" | "failed";
+  step?: string;
+  startedAt?: string;
+  finishedAt?: string;
+  message?: string;
+  bytesDone?: number;
+  bytesTotal?: number;
+  filesDone?: number;
+  filesTotal?: number;
+  filesUploaded?: number;
+  filesDeleted?: number;
+  bytesUploaded?: number;
+};
+
+// Starts a Google Drive backup (or returns the one already running).
+export async function startDriveBackup(): Promise<BackupStatus> {
+  const res = await fetchWithAuth(`${API_BASE_URL}/admin/backup`, { method: "POST" });
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Couldn't start the backup."));
+  }
+  return (await res.json()) as BackupStatus;
+}
+
+export async function fetchDriveBackupStatus(): Promise<BackupStatus> {
+  const res = await fetchWithAuth(`${API_BASE_URL}/admin/backup/status`);
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Couldn't load the backup status."));
+  }
+  return (await res.json()) as BackupStatus;
+}
